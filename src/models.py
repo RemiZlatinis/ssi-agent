@@ -136,7 +136,7 @@ def service_from_file(file_path: str | Path) -> Service:
                 raise ValueError("Invalid service file: interval cannot be empty")
             # Validate interval format (e.g. 1 * * * *)
             if not re.match(
-                r"^(\\d+|\\*) (\\d+|\\*) (\\d+|\\*) (\\d+|\\*) (\\d+|\\*)$", interval
+                r"^([\d*]+) ([\d*]+) ([\d*]+) ([\d*]+) ([\d*]+)$", interval
             ):
                 raise ValueError(
                     "Invalid service file: interval must be in cron format (e.g. '1 * * * *')"
