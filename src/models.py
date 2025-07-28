@@ -153,11 +153,14 @@ def service_from_file(file_path: str | Path) -> Service:
                     "Invalid service file: timeout must be an integer"
                 ) from exc
 
+        # Reset file pointer to the beginning
+        file.seek(0)
+
         return Service(
             name=name,
             description=description,
             version=version,
             interval=interval,
-            script="\n".join(data),
+            script=file.read(),
             timeout=timeout,
         )
