@@ -4,7 +4,7 @@
 # description: Checking for system updates on Debian/Ubuntu
 # version: 1.0
 # interval: 01 * * * *
-# timeout: 20 (Seconds - Optional)
+# timeout: 20
 
 # --- Description ---
 # The following script checks for updates on a Debian system
