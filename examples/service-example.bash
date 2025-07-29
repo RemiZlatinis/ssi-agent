@@ -22,23 +22,24 @@ TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 # You can customize the output messages here if needed.
 MSG_OK="System is up to date"
 MSG_UPDATE_AVAILABLE="available updates"
+MSG_SECURITY_UPDATES="security updates"
 
 # --- Script Logic ---
-# Update the package list (without upgrading)
-sudo apt-get update > /dev/null 2>&1
+# Check for both standard and security updates
+updates=$(/usr/lib/update-notifier/apt-check 2>&1)
 
-# Check for upgradable packages
-upgradable_packages=$(sudo apt list --upgradable 2>/dev/null | wc -l)
+# apt-check outputs two numbers separated by a semicolon:
+# standard_updates;security_updates
+IFS=';' read -ra update_array <<< "$updates"
+total_updates=${update_array[0]}
+security_updates=${update_array[1]}
 
-# Remove the header line from the count
-upgradable_packages=$((upgradable_packages - 1))
-
-# Check if there are any upgradable packages
-if [ "$upgradable_packages" -gt 0 ]; then
-  # If there are updates, output "update" and the number of updates
-  echo "$TIMESTAMP, $STATUS_UPDATE, $upgradable_packages $MSG_UPDATE_AVAILABLE"
+# Check if there are any updates
+if [ "$total_updates" -gt 0 ]; then
+  # If there are updates, output the count for both types
+  echo "$TIMESTAMP, $STATUS_UPDATE, $total_updates $MSG_UPDATE_AVAILABLE ($security_updates $MSG_SECURITY_UPDATES)"
 else
-  # If there are no updates, output "ok" and the message
+  # If there are no updates, output "ok"
   echo "$TIMESTAMP, $STATUS_OK, $MSG_OK"
 fi
 
