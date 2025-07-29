@@ -11,11 +11,12 @@
 # Returns ["ok", "System is up to date"] if there are no updates
 # Returns ["update", "X available updates"] if there are updates
 
-# --- Status Constants ---
+# --- Constants ---
 STATUS_OK="OK"
 STATUS_UPDATE="UPDATE"
 STATUS_WARNING="WARNING"
 STATUS_FAILURE="FAILURE"
+TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 
 # --- Configuration ---
 # You can customize the output messages here if needed.
@@ -35,10 +36,10 @@ upgradable_packages=$((upgradable_packages - 1))
 # Check if there are any upgradable packages
 if [ "$upgradable_packages" -gt 0 ]; then
   # If there are updates, output "update" and the number of updates
-  echo "$STATUS_UPDATE, $upgradable_packages $MSG_UPDATE_AVAILABLE"
+  echo "$TIMESTAMP, $STATUS_UPDATE, $upgradable_packages $MSG_UPDATE_AVAILABLE"
 else
   # If there are no updates, output "ok" and the message
-  echo "$STATUS_OK, $MSG_OK"
+  echo "$TIMESTAMP, $STATUS_OK, $MSG_OK"
 fi
 
 exit 0 # Success
