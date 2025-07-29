@@ -24,10 +24,10 @@ MSG_UPDATE_AVAILABLE="available updates"
 
 # --- Script Logic ---
 # Update the package list (without upgrading)
-apt-get update > /dev/null 2>&1
+sudo apt-get update > /dev/null 2>&1
 
 # Check for upgradable packages
-upgradable_packages=$(apt list --upgradable 2>/dev/null | wc -l)
+upgradable_packages=$(sudo apt list --upgradable 2>/dev/null | wc -l)
 
 # Remove the header line from the count
 upgradable_packages=$((upgradable_packages - 1))
