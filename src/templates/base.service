@@ -1,0 +1,17 @@
+[Unit]
+Description={description}
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c '{script}'
+TimeoutSec={timeout}
+RemainAfterExit=no
+Restart=no
+StandardOutput=append:/var/log/service-status-indicator/{id}.log
+StandardError=append:/var/log/service-status-indicator/{id}.log
+LogsDirectory=service-status-indicator
+LogsDirectoryMode=0755
+
+[Install]
+WantedBy=multi-user.target
