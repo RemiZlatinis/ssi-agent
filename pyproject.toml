@@ -1,5 +1,5 @@
 [project]
-name = "serivce-status-indicator-agent"
+name = "service-status-indicator-agent"
 version = "0.1.0"
 description = "The agent backend of the Service Status Indicator"
 authors = [
