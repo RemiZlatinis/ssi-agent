@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# name: This is a Service Example
+# name: System Updates
 # description: Checking for system updates on Debian/Ubuntu
 # version: 1.0
 # schedule: *:0/01:00
