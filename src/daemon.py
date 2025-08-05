@@ -1,20 +1,27 @@
 """
-Observes the services logs and prints the
-new lines from any modified log files in real-time.
+Observes the services logs and sends the
+new lines from any modified log files to the WebSocket server in real-time.
 """
 
 import os
+import asyncio
+import websockets
+import json
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 from constants import LOG_DIR
 
+WEBSOCKET_URI = "ws://localhost:5000"
+
 
 class LogHandler(FileSystemEventHandler):
-    def __init__(self):
+    def __init__(self, websocket, loop):
         super().__init__()
         self.file_positions = {}  # Stores last read positions
+        self.websocket = websocket
+        self.loop = loop
 
     def on_modified(self, event):
         if event.is_directory:
@@ -41,28 +48,54 @@ class LogHandler(FileSystemEventHandler):
                         service_id = str(os.path.basename(file_path)).replace(
                             ".log", ""
                         )
-                        print(f"{service_id} {last_line}")
+                        log_data = {"service_id": service_id, "message": last_line}
+                        asyncio.run_coroutine_threadsafe(
+                            self.send_log_message(log_data), self.loop
+                        )
         except Exception as e:
             print(f"Error reading {file_path}: {e}")
 
+    async def send_log_message(self, log_data):
+        try:
+            await self.websocket.send(json.dumps(log_data))
+        except Exception as e:
+            print(f"Error sending log message to WebSocket server: {e}")
 
-def main():
+
+async def run_daemon():
     if not os.path.exists(LOG_DIR):
         print(f"Log directory {LOG_DIR} does not exist.")
         return
 
-    event_handler = LogHandler()
-    observer = Observer()
-    observer.schedule(event_handler, str(LOG_DIR), recursive=False)
-    observer.start()
+    while True:
+        try:
+            async with websockets.connect(WEBSOCKET_URI) as websocket:
+                print("Connected to WebSocket server")
+                loop = asyncio.get_running_loop()
+                event_handler = LogHandler(websocket, loop)
+                observer = Observer()
+                observer.schedule(event_handler, str(LOG_DIR), recursive=False)
+                observer.start()
 
-    print(f"Watching for changes in: {LOG_DIR}")
-    try:
-        observer.join()
-    except KeyboardInterrupt:
-        print("\nStopping observer...")
-        observer.stop()
-    observer.join()
+                print(f"Watching for changes in: {LOG_DIR}")
+                try:
+                    while True:
+                        await asyncio.sleep(1)
+                except KeyboardInterrupt:
+                    print("\nStopping observer...")
+                    observer.stop()
+                finally:
+                    observer.join()
+                    print("Observer stopped")
+        except (websockets.exceptions.ConnectionClosed, ConnectionRefusedError) as e:
+            print(f"WebSocket connection error: {e}. Retrying in 5 seconds...")
+            await asyncio.sleep(5)
+        except KeyboardInterrupt:
+            break
+
+
+def main():
+    asyncio.run(run_daemon())
 
 
 if __name__ == "__main__":
