@@ -3,7 +3,7 @@
 # name: This is a Service Example
 # description: Checking for system updates on Debian/Ubuntu
 # version: 1.0
-# interval: 01 * * * *
+# schedule: *:0/01:00
 # timeout: 20
 
 # --- Description ---
