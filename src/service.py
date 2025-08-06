@@ -33,10 +33,10 @@ class Service:
             raise ValueError("Service name must be between 3 and 60 characters.")
         if len(self.description) > 255:
             raise ValueError("Service description cannot exceed 255 characters.")
-        if len(self.message) > 255:
-            raise ValueError("Service message cannot exceed 255 characters.")
-        if self.timeout <= 0:
-            raise ValueError("Timeout must be a positive integer.")
+        if self.timeout <= 1:
+            raise ValueError("Timeout cannot be less then a second.")
+        if self.timeout > 60:
+            raise ValueError("Timeout cannot be greater than 60 seconds.")
 
         validate_schedule(self.schedule)
 
