@@ -26,11 +26,6 @@ class Service:
     id: str = field(init=False)
     timeout: int = field(default=20)  # in seconds
 
-    # State attributes
-    status: Status = field(default=Status.ERROR)
-    message: str = field(default="")
-    last_check: Optional[datetime] = field(default=None)
-
     def __post_init__(self) -> None:
         """Validate service attributes after initialization and set derived fields."""
         # Validate attributes
