@@ -231,6 +231,9 @@ class Service:
             print(f"Service {self.name} is already disabled.")
             return
 
+        #Remove the script
+        commands.remove_script(self.script)
+
         # Disable the service timer
         commands.disable(PREFIX + self.id)
 

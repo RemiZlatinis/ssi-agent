@@ -69,6 +69,20 @@ def install_script(script: Path) -> None:
         print(f"Error installing script {script.name}: {e}")
         exit(1)
 
+def remove_script(script: Path) -> None:
+    """Removes a service script from the scripts directory."""
+    script_path = SCRIPTS_DIR / script.name
+
+    if not script_path.exists():
+        print(f"Script {script_path} does not exist.")
+        return
+
+    try:
+        subprocess.run(["sudo", "rm", str(script_path)], check=True)
+        print(f"Script {script_path} removed successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error removing script {script_path}: {e}")
+        exit(1)
 
 def install_unit_file(file: Path) -> None:
     """Installs a service unit file to the services directory."""
