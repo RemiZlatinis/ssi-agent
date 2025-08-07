@@ -30,7 +30,8 @@ def validate_schedule(schedule: str) -> None:
     # Complex schedule patterns
     patterns = [
         # Time-based formats
-        r"^\*:[0-9]+/[0-9]{2}:[0-9]{2}$",  # Every N minutes/hours
+        r"^\*:[0-9]+/[0-9]+$",  # Every N minutes (simplified format)
+        r"^\*:[0-9]+/[0-9]{2}:[0-9]{2}$",  # Every N minutes/hours (extended format)
         r"^\*:[0-9]{2}:[0-9]{2}$",  # Every hour
         r"^0/[0-9]+:[0-9]{2}:[0-9]{2}$",  # Every hour, alternative format
         # Day-based schedules
