@@ -24,7 +24,7 @@ def list():
     max_version_len = max([len(s.version) for s in services] + [len("Version")])
     max_schedule_len = max([len(s.schedule) for s in services] + [len("Schedule")])
     max_status_len = max(
-        [len(s.get_last_status() or "N/A") for s in services] + [len("Status")]
+        [len(str(s.get_last_status()) or "N/A") for s in services] + [len("Status")]
     )
 
     # Header

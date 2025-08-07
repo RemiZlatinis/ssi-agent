@@ -7,6 +7,7 @@ from typing import Optional, TypedDict
 import commands
 from validators import validate_schedule
 from parsers import parse_log_line
+from models import Status
 from constants import PREFIX, SERVICES_DIR, SCRIPTS_DIR, LOG_DIR
 
 ServiceDict = TypedDict(
@@ -295,7 +296,7 @@ class Service:
 
         print(f"Service {self.name} disabled successfully.")
 
-    def get_last_status(self) -> str | None:
+    def get_last_status(self) -> Status | None:
         """Retrieves the last status of the service from its logs."""
         service_logs = LOG_DIR / f"{self.id}.log"
         if not service_logs.exists():
