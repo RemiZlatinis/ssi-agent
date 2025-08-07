@@ -40,7 +40,13 @@ async def handle_connection(websocket):
 
 
 async def main():
-    async with websockets.serve(handle_connection, "localhost", 5000):
+    async with websockets.serve(
+        handle_connection,
+        "localhost",
+        5000,
+        ping_interval=20,
+        ping_timeout=60,
+    ):
         print("WebSocket server started on ws://localhost:5000")
         await asyncio.Future()  # run forever
 

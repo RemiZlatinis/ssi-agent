@@ -86,7 +86,9 @@ async def run_daemon():
 
     while True:
         try:
-            async with websockets.connect(WEBSOCKET_URI) as websocket:
+            async with websockets.connect(
+                WEBSOCKET_URI, ping_interval=20, ping_timeout=60
+            ) as websocket:
                 print("Connected to WebSocket server")
                 loop = asyncio.get_running_loop()
                 event_handler = LogHandler(websocket, loop)
