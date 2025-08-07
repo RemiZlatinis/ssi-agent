@@ -147,6 +147,18 @@ class Service:
 
         return services
 
+    def to_dict(self) -> dict[str, str | Path | int]:
+        """Converts the service to a dictionary representation."""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "version": self.version,
+            "schedule": self.schedule,
+            "script": str(self.script),
+            "timeout": self.timeout,
+        }
+
     def is_enabled(self) -> bool:
         """Checks if the service is enabled on the system."""
         return commands.is_enabled(PREFIX + self.id)
