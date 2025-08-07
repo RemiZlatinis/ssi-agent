@@ -5,8 +5,9 @@ from typing import Optional, TypedDict
 
 
 import commands
-from constants import PREFIX, SERVICES_DIR, SCRIPTS_DIR
 from validators import validate_schedule
+from parsers import parse_log_line
+from constants import PREFIX, SERVICES_DIR, SCRIPTS_DIR, LOG_DIR
 
 ServiceDict = TypedDict(
     "ServiceDict",
@@ -293,3 +294,19 @@ class Service:
             commands.remove_unit(unit)
 
         print(f"Service {self.name} disabled successfully.")
+
+    def get_last_status(self) -> str | None:
+        """Retrieves the last status of the service from its logs."""
+        service_logs = LOG_DIR / f"{self.id}.log"
+        if not service_logs.exists():
+            print(f"No logs found for service {self.name}.")
+            return None
+        try:
+            with open(service_logs, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+                if not lines:
+                    return None
+                return parse_log_line(lines[-1].strip())[1]  # Return the status part
+        except Exception as e:
+            print(f"Error reading logs for service {self.name}: {e}")
+            return None
