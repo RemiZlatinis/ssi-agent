@@ -3,7 +3,7 @@
 import subprocess
 from pathlib import Path
 
-from constants import SERVICES_DIR, SCRIPTS_DIR
+from constants import PREFIX, SCRIPTS_DIR, SERVICES_DIR
 
 
 def _execute(command: str) -> str:
@@ -52,9 +52,9 @@ def is_enabled(service_id: str) -> bool:
         # exit(1)
 
 
-def install_script(script: Path) -> None:
+def install_script(service_id: str, script: Path) -> None:
     """Installs a service script to the scripts directory."""
-    target_script = SCRIPTS_DIR / script.name
+    target_script = SCRIPTS_DIR / f"{service_id}.bash"
 
     # Ensure the scripts directory exists
     subprocess.run(["sudo", "mkdir", "-p", str(SCRIPTS_DIR)], check=True)
@@ -68,6 +68,7 @@ def install_script(script: Path) -> None:
     except subprocess.CalledProcessError as e:
         print(f"Error installing script {script.name}: {e}")
         exit(1)
+
 
 def remove_script(script: Path) -> None:
     """Removes a service script from the scripts directory."""
@@ -83,6 +84,7 @@ def remove_script(script: Path) -> None:
     except subprocess.CalledProcessError as e:
         print(f"Error removing script {script_path}: {e}")
         exit(1)
+
 
 def install_unit_file(file: Path) -> None:
     """Installs a service unit file to the services directory."""
@@ -139,3 +141,61 @@ def disable(service_id: str) -> None:
     except subprocess.CalledProcessError as e:
         print(f"Error disabling service {service_id}: {e}")
         exit(1)
+
+
+def exists(service_id: str) -> bool:
+    """
+    Checks if the service exists in the system.
+
+    Returns:
+        `True` if all files exist
+        `False` if none exist
+        `False` if some files are missing and prints an error message.
+    """
+    service_unit = SERVICES_DIR / f"{PREFIX + service_id}.service"
+    timer_unit = SERVICES_DIR / f"{PREFIX + service_id}.timer"
+    script = SCRIPTS_DIR / f"{service_id.replace("_", "-")}.bash"
+
+    all_files_exists = all(
+        [
+            service_unit.exists(),
+            timer_unit.exists(),
+            script.exists(),
+        ]
+    )
+    no_files_exists = all(
+        [
+            not service_unit.exists(),
+            not timer_unit.exists(),
+            not script.exists(),
+        ]
+    )
+
+    if all_files_exists:
+        return True
+    elif no_files_exists:
+        return False
+    else:
+        if not service_unit.exists():
+            print(f"Service unit file of {service_unit} is missing.")
+        if not timer_unit.exists():
+            print(f"Timer unit file of {timer_unit} is missing.")
+        if not script.exists():
+            print(f"Script file of {script} is missing.")
+        print(f"Service {service_id} is not properly installed.")
+        return False
+
+
+def force_remove(service_id: str) -> None:
+    """Forcefully removes the service by disabling its timer and removing all related files."""
+    service_unit = SERVICES_DIR / f"{PREFIX + service_id}.service"
+    timer_unit = SERVICES_DIR / f"{PREFIX + service_id}.timer"
+    script = SCRIPTS_DIR / f"{service_id.replace('_', '-')}.bash"
+
+    if service_unit.exists():
+        remove_unit(service_unit)
+    if timer_unit.exists():
+        _execute(f"sudo systemctl disable --now {timer_unit.name}")
+        remove_unit(timer_unit)
+    if script.exists():
+        remove_script(script)

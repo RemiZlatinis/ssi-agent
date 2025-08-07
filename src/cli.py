@@ -2,13 +2,56 @@
 
 import click
 
+
 from service import Service
+import commands
 
 
 @click.group()
 def main():
     """A CLI tool for managing the Service Status Indicator Agent."""
     pass
+
+
+@main.command()
+@click.argument("service_script_path", type=click.Path(exists=True, dir_okay=False))
+def add(service_script_path: str):
+    """Add a new service."""
+    try:
+        service = Service(service_script_path)
+        if service.exists():
+            click.echo(f"Service '{service.name}' already exists.")
+            return
+
+        service.enable()
+        click.echo(f"Service '{service.name}' added successfully.")
+    except Exception as e:
+        click.echo(f"Failed to add service: {e}")
+
+
+@main.command()
+@click.argument("service_id")
+@click.option("-f", "--force", is_flag=True, help="Force removal of the service.")
+def remove(service_id: str, force: bool):
+    """Remove a service by its ID."""
+    if force:
+        try:
+            commands.force_remove(service_id)
+            click.echo(f"Service '{service_id}' removed forcefully.")
+        except Exception as e:
+            click.echo(f"Failed to force remove service: {e}")
+        return
+
+    service = Service.get_service(service_id)
+    if not service:
+        click.echo(f"Service '{service_id}' not found.")
+        return
+
+    try:
+        service.disable()
+        click.echo(f"Service '{service.name}' removed successfully.")
+    except Exception as e:
+        click.echo(f"Failed to remove service: {e}")
 
 
 @main.command()

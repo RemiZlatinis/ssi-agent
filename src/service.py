@@ -201,18 +201,23 @@ class Service:
         return commands.is_enabled(PREFIX + self.id)
 
     def enable(self) -> None:
-        """Enables the service."""
+        """
+        Enables the service.
+
+        This method installs the service script, creates the service and timer unit files,
+        and enables the service timer.
+        """
         if self.is_enabled():
             print(f"Service {self.name} is already enabled.")
             return
 
         # If the script in not installed, copy it to the scripts directory
-        script_target = SCRIPTS_DIR / self.script.name
+        script_target = SCRIPTS_DIR / f"{self.id.replace("_", "-")}.bash"
         if not script_target.exists():
-            commands.install_script(self.script)
+            commands.install_script(self.id, self.script)
         else:
             print(
-                f"Script {self.script.name} already exists in {SCRIPTS_DIR}. Skipping installation."
+                f"Script {self.id.replace('_', '-')}.bash already exists in {SCRIPTS_DIR}. Skipping installation."
             )
 
         # If service unit does not exists, create it
@@ -312,7 +317,9 @@ class Service:
             print(f"Error reading logs for service {self.name}: {e}")
             return None
 
-    def get_last_status_details(self) -> tuple[datetime | None, Status | None, str | None]:
+    def get_last_status_details(
+        self,
+    ) -> tuple[datetime | None, Status | None, str | None]:
         """Retrieves the last status of the service from its logs with details."""
         service_logs = LOG_DIR / f"{self.id}.log"
         if not service_logs.exists():
@@ -327,3 +334,7 @@ class Service:
         except Exception as e:
             print(f"Error reading logs for service {self.name}: {e}")
             return None, None, None
+
+    def exists(self) -> bool:
+        """Checks if the service exists in the system."""
+        return commands.exists(self.id)
