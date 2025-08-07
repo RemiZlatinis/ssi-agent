@@ -15,6 +15,7 @@ from constants import LOG_DIR
 from service import Service
 
 WEBSOCKET_URI = "ws://localhost:5000"
+PING_INTERVAL_SECONDS = 10
 
 
 class LogHandler(FileSystemEventHandler):
@@ -59,7 +60,7 @@ class LogHandler(FileSystemEventHandler):
                         except ValueError:
                             timestamp, status = last_line.split(",", 1)
                             message = None
-                            
+
                         log_data = {
                             "service": service.to_dict(),
                             "timestamp": timestamp.strip(),
@@ -79,17 +80,49 @@ class LogHandler(FileSystemEventHandler):
             print(f"Error sending log message to WebSocket server: {e}")
 
 
+async def connect_with_retry():
+    """Establish WebSocket connection with retry logic"""
+    retry_delay = 5
+    max_retries = 3  # Number of quick retries before increasing delay
+    retry_count = 0
+
+    while True:
+        try:
+            websocket = await websockets.connect(
+                WEBSOCKET_URI,
+                ping_interval=20,
+                ping_timeout=60,
+                close_timeout=5,
+            )
+            print("Connected to WebSocket server")
+            return websocket
+        except (
+            websockets.exceptions.ConnectionClosed,
+            ConnectionRefusedError,
+            OSError,
+        ) as e:
+            retry_count += 1
+            if retry_count > max_retries:
+                retry_delay = min(30, retry_delay * 2)  # Exponential backoff up to 30s
+                retry_count = 0
+
+            print(
+                f"Connection attempt failed: {e}. Retrying in {retry_delay} seconds..."
+            )
+            await asyncio.sleep(retry_delay)
+
+
 async def run_daemon():
     if not os.path.exists(LOG_DIR):
         print(f"Log directory {LOG_DIR} does not exist.")
         return
 
     while True:
+        websocket = None
+        observer = None
         try:
-            async with websockets.connect(
-                WEBSOCKET_URI, ping_interval=20, ping_timeout=60
-            ) as websocket:
-                print("Connected to WebSocket server")
+            try:
+                websocket = await connect_with_retry()
                 loop = asyncio.get_running_loop()
                 event_handler = LogHandler(websocket, loop)
                 observer = Observer()
@@ -97,25 +130,48 @@ async def run_daemon():
                 observer.start()
 
                 print(f"Watching for changes in: {LOG_DIR}")
-                try:
-                    while True:
-                        await asyncio.sleep(1)
-                except KeyboardInterrupt:
-                    print("\nStopping observer...")
+                while True:
+                    try:
+                        await websocket.ping()
+                        await asyncio.sleep(PING_INTERVAL_SECONDS)
+                    except (
+                        websockets.exceptions.ConnectionClosed,
+                        websockets.exceptions.ConnectionClosedError,
+                        OSError,
+                    ) as e:
+                        print(f"Connection error: {e}")
+                        raise  # Re-raise to trigger reconnection
+
+            except Exception as e:
+                print(f"Connection lost: {e}. Reconnecting...")
+                if observer:
                     observer.stop()
-                finally:
                     observer.join()
-                    print("Observer stopped")
-        except (websockets.exceptions.ConnectionClosed, ConnectionRefusedError) as e:
-            print(f"WebSocket connection error: {e}. Retrying in 5 seconds...")
-            await asyncio.sleep(5)
+                if websocket:
+                    await websocket.close()
+                continue
+
         except KeyboardInterrupt:
+            print("\nStopping daemon...")
+            if observer:
+                observer.stop()
+                observer.join()
+            if websocket:
+                await websocket.close()
             break
 
 
 def main():
-    asyncio.run(run_daemon())
+    """Main entry point"""
+    try:
+        asyncio.run(run_daemon())
+    except KeyboardInterrupt:
+        print("\nExiting...")
+    except Exception as e:
+        print(f"Fatal error: {e}")
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())

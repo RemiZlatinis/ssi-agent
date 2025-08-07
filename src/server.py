@@ -34,21 +34,30 @@ async def handle_connection(websocket):
         async for message in websocket:
             print(f"Received log: {message}")
             # Broadcast the message to all connected clients
-            await broadcast(message)
+            # await broadcast(message)
+    except websockets.exceptions.ConnectionClosedError as e:
+        print(f"Connection closed with error: {e}")
+    except Exception as e:
+        print(f"Error handling connection: {e}")
     finally:
         await unregister(websocket)
 
 
 async def main():
-    async with websockets.serve(
-        handle_connection,
-        "localhost",
-        5000,
-        ping_interval=20,
-        ping_timeout=60,
-    ):
-        print("WebSocket server started on ws://localhost:5000")
-        await asyncio.Future()  # run forever
+    while True:
+        try:
+            async with websockets.serve(
+                handle_connection,
+                "localhost",
+                5000,
+                ping_interval=20,
+                ping_timeout=60,
+            ):
+                print("WebSocket server started on ws://localhost:5000")
+                await asyncio.Future()  # run forever
+        except Exception as e:
+            print(f"Server error: {e}. Restarting in 5 seconds...")
+            await asyncio.sleep(5)
 
 
 if __name__ == "__main__":
