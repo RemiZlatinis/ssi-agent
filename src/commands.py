@@ -44,9 +44,12 @@ def is_enabled(service_id: str) -> bool:
     try:
         result = subprocess.run(command, check=True, capture_output=True, text=True)
         return result.stdout.strip() == "enabled"
-    except subprocess.CalledProcessError:
-        print(f"Error on calling systemctl is-enabled for {service_id}.timer")
-        exit(1)
+    except subprocess.CalledProcessError as e:
+        return False
+        # if e.returncode == 4:
+        #     print(f"Service {service_id} is not installed.")
+        # print(f"Error on calling systemctl is-enabled for {service_id}.timer")
+        # exit(1)
 
 
 def install_script(script: Path) -> None:
