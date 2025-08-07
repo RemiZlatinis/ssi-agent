@@ -93,7 +93,7 @@ def remove_unit(file: Path) -> None:
 
 def enable(service_id: str) -> None:
     """Enables the service by enabling its timer."""
-    command = ["sudo", "systemctl", "enable", f"{service_id}.timer"]
+    command = ["sudo", "systemctl", "enable", "--now", f"{service_id}.timer"]
     try:
         subprocess.run(command, check=True)
         print(f"Service {service_id} enabled successfully.")
@@ -115,7 +115,7 @@ def run(service_id: str) -> None:
 
 def disable(service_id: str) -> None:
     """Disables the service by disabling its timer."""
-    command = ["sudo", "systemctl", "disable", f"{service_id}.timer"]
+    command = ["sudo", "systemctl", "disable", "--now", f"{service_id}.timer"]
     try:
         subprocess.run(command, check=True)
         print(f"Service {service_id} disabled successfully.")
