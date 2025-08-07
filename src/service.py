@@ -311,3 +311,19 @@ class Service:
         except Exception as e:
             print(f"Error reading logs for service {self.name}: {e}")
             return None
+
+    def get_last_status_details(self) -> tuple[str | None, Status | None, str | None]:
+        """Retrieves the last status of the service from its logs with details."""
+        service_logs = LOG_DIR / f"{self.id}.log"
+        if not service_logs.exists():
+            print(f"No logs found for service {self.name}.")
+            return "", None, None
+        try:
+            with open(service_logs, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+                if not lines:
+                    return "", None, None
+                return parse_log_line(lines[-1].strip())  # Return the parsed log line
+        except Exception as e:
+            print(f"Error reading logs for service {self.name}: {e}")
+            return None, None, None

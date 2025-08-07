@@ -1,6 +1,7 @@
 """CLI tool for managing the Service Status Indicator Agent."""
 
 import click
+
 from service import Service
 
 
@@ -41,8 +42,34 @@ def list():
         click.echo(
             f"{service.id:<{max_id_len}} | {service.name:<{max_name_len}} | "
             f"{service.version:<{max_version_len}} | {service.schedule:<{max_schedule_len}} | "
-            f"{status:<{max_status_len}}"
+            f"{str(status):<{max_status_len}}"
         )
+
+
+@main.command()
+@click.argument("service_id", required=False)
+@click.option("-d", "--details", is_flag=True, help="Display detailed status.")
+def status(service_id: str, details: bool):
+    """Display the status of a service or all services."""
+    if service_id:
+        service = Service.get_service(service_id)
+        if not service:
+            click.echo(f"Service '{service_id}' not found.")
+            return
+        services = [service]
+    else:
+        services = Service.get_services()
+
+    if details:
+        for service in services:
+            timestamp, status, message = service.get_last_status_details()
+            click.echo(f"Service: {service.name} ({service.id})")
+            click.echo(f"  - Status: {status or 'N/A'}")
+            click.echo(f"  - Timestamp: {timestamp or 'N/A'}")
+            click.echo(f"  - Message: {message or 'N/A'}")
+    else:
+        for service in services:
+            click.echo(f"{service.name}: {service.get_last_status() or 'N/A'}")
 
 
 if __name__ == "__main__":
