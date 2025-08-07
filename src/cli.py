@@ -19,10 +19,10 @@ def list():
         return
 
     # Determine the maximum width for each column for pretty printing
-    max_id_len = max(len(s.id) for s in services) if services else 0
-    max_name_len = max(len(s.name) for s in services) if services else 0
-    max_version_len = max(len(s.version) for s in services) if services else 0
-    max_schedule_len = max(len(s.schedule) for s in services) if services else 0
+    max_id_len = max([len(s.id) for s in services] + [len("ID")])
+    max_name_len = max([len(s.name) for s in services] + [len("Name")])
+    max_version_len = max([len(s.version) for s in services] + [len("Version")])
+    max_schedule_len = max([len(s.schedule) for s in services] + [len("Schedule")])
 
     # Header
     header = (
