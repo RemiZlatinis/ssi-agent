@@ -1,5 +1,5 @@
 """
-WebSocket server to receive and handle log messages from the daemon.
+WebSocket server to receive and handle log messages from the watcher.
 """
 
 import asyncio
