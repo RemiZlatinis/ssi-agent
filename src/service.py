@@ -184,12 +184,12 @@ class Service:
                 raise ValueError("Failed to create service unit file content")
 
             # Write service unit file
-            service_unit = f"{PREFIX+self.id}.service"
+            service_unit = Path(f"{PREFIX+self.id}.service")
             with open(service_unit, "w", encoding="utf-8") as file:
                 file.write(content)
 
             # Move the service unit file to the services directory
-            commands.install_unit_file(service_file)
+            commands.install_unit_file(service_unit)
         else:
             print(
                 f"Service unit file {service_file.name} already exists. Skipping creation."
@@ -211,12 +211,12 @@ class Service:
                 raise ValueError("Failed to create timer unit file content")
 
             # Write timer unit file
-            timer_unit = f"{PREFIX+self.id}.timer"
+            timer_unit = Path(f"{PREFIX+self.id}.timer")
             with open(timer_unit, "w", encoding="utf-8") as file:
                 file.write(content)
 
             # Move the timer unit file to the services directory
-            commands.install_unit_file(timer_file)
+            commands.install_unit_file(timer_unit)
         else:
             print(
                 f"Timer unit file {timer_file.name} already exists. Skipping creation."
