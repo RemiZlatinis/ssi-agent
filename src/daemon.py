@@ -12,6 +12,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 from constants import LOG_DIR
+from service import Service
 
 WEBSOCKET_URI = "ws://localhost:5000"
 
@@ -48,7 +49,23 @@ class LogHandler(FileSystemEventHandler):
                         service_id = str(os.path.basename(file_path)).replace(
                             ".log", ""
                         )
-                        log_data = {"service_id": service_id, "message": last_line}
+                        service = Service.get_service(service_id)
+                        if not service:
+                            print(f"Service with ID {service_id} not found.")
+                            return
+
+                        try:
+                            timestamp, status, message = last_line.split(",", 2)
+                        except ValueError:
+                            timestamp, status = last_line.split(",", 1)
+                            message = None
+                            
+                        log_data = {
+                            "service": service.to_dict(),
+                            "timestamp": timestamp.strip(),
+                            "status": status.strip(),
+                            "message": message.strip() if message else None,
+                        }
                         asyncio.run_coroutine_threadsafe(
                             self.send_log_message(log_data), self.loop
                         )
