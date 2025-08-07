@@ -13,6 +13,7 @@ from watchdog.events import FileSystemEventHandler
 
 from constants import LOG_DIR
 from service import Service
+from parsers import parse_log_line
 
 WEBSOCKET_URI = "ws://localhost:5000"
 PING_INTERVAL_SECONDS = 10
@@ -55,17 +56,13 @@ class LogHandler(FileSystemEventHandler):
                             print(f"Service with ID {service_id} not found.")
                             return
 
-                        try:
-                            timestamp, status, message = last_line.split(",", 2)
-                        except ValueError:
-                            timestamp, status = last_line.split(",", 1)
-                            message = None
+                        timestamp, status, message = parse_log_line(last_line)
 
                         log_data = {
                             "service": service.to_dict(),
-                            "timestamp": timestamp.strip(),
-                            "status": status.strip(),
-                            "message": message.strip() if message else None,
+                            "timestamp": timestamp,
+                            "status": status,
+                            "message": message,
                         }
                         asyncio.run_coroutine_threadsafe(
                             self.send_log_message(log_data), self.loop
