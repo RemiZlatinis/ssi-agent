@@ -1,14 +1,24 @@
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TypedDict
 
 
 import commands
-from models import Status
 from constants import PREFIX, SERVICES_DIR, SCRIPTS_DIR
 from validators import validate_schedule
+
+ServiceDict = TypedDict(
+    "ServiceDict",
+    {
+        "name": str,
+        "description": str,
+        "version": str,
+        "schedule": str,
+        "script": Path,
+        "timeout": int,
+    },
+)
 
 
 @dataclass
@@ -25,6 +35,28 @@ class Service:
     # Derived attributes
     id: str = field(init=False)
     timeout: int = field(default=20)  # in seconds
+
+    def __init__(self, service_script: Path | str):
+        """Initializes a Service object from a service script file.
+
+        Args:
+            service_script: Path to the service script file
+        """
+        service_script = Path(service_script)
+        if not service_script.exists() and not service_script.is_file():
+            raise FileNotFoundError(f"Service script {service_script} does not exist.")
+        if service_script.suffix != ".bash":
+            raise ValueError("Service script must be a .bash file.")
+
+        # Parse the service script to extract metadata
+        service_data = self._script_parser(service_script)
+        self.name = service_data["name"]
+        self.description = service_data["description"]
+        self.version = service_data["version"]
+        self.schedule = service_data["schedule"]
+        self.script = service_data["script"]
+        self.timeout = service_data["timeout"]
+        self.__post_init__()
 
     def __post_init__(self) -> None:
         """Validate service attributes after initialization and set derived fields."""
@@ -80,18 +112,11 @@ class Service:
         return None
 
     @classmethod
-    def _from_file(cls, script: Path) -> "Service":
-        """Creates a Service object from a service script file.
+    def _script_parser(cls, script: Path) -> ServiceDict:
+        """Parses a service script file and returns a ServiceDict.
 
         Args:
             script: Path to the service script file
-
-        Returns:
-            Service: New service instance
-
-        Raises:
-            FileNotFoundError: If script file doesn't exist
-            ValueError: If required metadata is missing or invalid
         """
         if not script.exists():
             raise FileNotFoundError(f"Service script {script} does not exist.")
@@ -102,50 +127,60 @@ class Service:
 
                 # Extract metadata from the script
                 name = re.search(r"# name:\s*(.+)", content)
+                description = re.search(r"# description:\s*(.+)", content)
+                version = re.search(r"# version:\s*(.+)", content)
+                schedule = re.search(r"# schedule:\s*(.+)", content)
+                timeout = re.search(r"# timeout:\s*(\d+)", content)
+
                 if not name:
                     raise ValueError("Service script must contain a name metadata.")
-                name = name.group(1).strip()
-
-                description = re.search(r"# description:\s*(.+)", content)
                 if not description:
                     raise ValueError(
                         "Service script must contain a description metadata."
                     )
-                description = description.group(1).strip()
-
-                version = re.search(r"# version:\s*(.+)", content)
                 if not version:
                     raise ValueError("Service script must contain a version metadata.")
-                version = version.group(1).strip()
-
-                schedule = re.search(r"# schedule:\s*(.+)", content)
                 if not schedule:
                     raise ValueError("Service script must contain a schedule metadata.")
-                schedule = schedule.group(1).strip()
 
-                return cls(
-                    name=name,
-                    description=description,
-                    version=version,
-                    schedule=schedule,
+                return ServiceDict(
+                    name=name.group(1).strip(),
+                    description=description.group(1).strip(),
+                    version=version.group(1).strip(),
+                    schedule=schedule.group(1).strip(),
                     script=script,
+                    timeout=int(timeout.group(1).strip()) if timeout else 20,
                 )
         except Exception as e:
             raise ValueError(f"Failed to parse service script: {e}") from e
 
     @classmethod
-    def services(cls) -> list["Service"]:
+    def get_services(cls) -> list["Service"]:
         """Returns a list of all enabled services."""
         services_ids = commands.get_enabled_services()
         services = []
 
         for service_id in services_ids:
-            script_path = cls._get_script_for_service(service_id)
-            if script_path and script_path.exists():
-                service = cls._from_file(script_path)
+            service = cls.get_service(service_id)
+            if service:
                 services.append(service)
 
         return services
+
+    @classmethod
+    def get_service(cls, service_id: str) -> Optional["Service"]:
+        """Retrieves a service by its ID.
+
+        Args:
+            service_id: The ID of the service
+
+        Returns:
+            Service object if found, None otherwise
+        """
+        script_path = cls._get_script_for_service(service_id)
+        if script_path and script_path.exists():
+            return Service(script_path)
+        return None
 
     def to_dict(self) -> dict[str, str | Path | int]:
         """Converts the service to a dictionary representation."""
@@ -243,7 +278,7 @@ class Service:
             print(f"Service {self.name} is already disabled.")
             return
 
-        #Remove the script
+        # Remove the script
         commands.remove_script(self.script)
 
         # Disable the service timer
