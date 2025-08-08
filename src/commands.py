@@ -3,7 +3,7 @@
 import subprocess
 from pathlib import Path
 
-from constants import PREFIX, SCRIPTS_DIR, SERVICES_DIR
+from .constants import PREFIX, SCRIPTS_DIR, SERVICES_DIR
 
 
 def _execute(command: str) -> str:

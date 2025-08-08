@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from models import Status
+from .models import Status
 
 
 def parse_log_line(line: str) -> tuple[datetime | None, Status | None, str | None]:

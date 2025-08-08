@@ -4,11 +4,11 @@ from pathlib import Path
 from typing import Optional, TypedDict
 import re
 
-from constants import PREFIX, SERVICES_DIR, SCRIPTS_DIR, LOG_DIR
-from models import Status
-from parsers import parse_log_line
-from validators import validate_schedule
-import commands
+from .constants import PREFIX, SERVICES_DIR, SCRIPTS_DIR, LOG_DIR
+from .models import Status
+from .parsers import parse_log_line
+from .validators import validate_schedule
+from . import commands
 
 ServiceDict = TypedDict(
     "ServiceDict",

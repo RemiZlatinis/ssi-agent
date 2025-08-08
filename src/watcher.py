@@ -11,9 +11,9 @@ import json
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from constants import LOG_DIR
-from service import Service
-from parsers import parse_log_line
+from .constants import LOG_DIR
+from .service import Service
+from .parsers import parse_log_line
 
 WEBSOCKET_URI = "ws://localhost:5000"
 PING_INTERVAL_SECONDS = 10

@@ -3,8 +3,8 @@
 import click
 
 
-from service import Service
-import commands
+from .service import Service
+from . import commands
 
 
 @click.group()
