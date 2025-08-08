@@ -156,14 +156,14 @@ def exists(service_id: str) -> bool:
     timer_unit = SERVICES_DIR / f"{PREFIX + service_id}.timer"
     script = SCRIPTS_DIR / f"{service_id.replace("_", "-")}.bash"
 
-    all_files_exists = all(
+    all_files_exist = all(
         [
             service_unit.exists(),
             timer_unit.exists(),
             script.exists(),
         ]
     )
-    no_files_exists = all(
+    no_files_exist = all(
         [
             not service_unit.exists(),
             not timer_unit.exists(),
@@ -171,9 +171,9 @@ def exists(service_id: str) -> bool:
         ]
     )
 
-    if all_files_exists:
+    if all_files_exist:
         return True
-    elif no_files_exists:
+    elif no_files_exist:
         return False
     else:
         if not service_unit.exists():
