@@ -154,35 +154,28 @@ def exists(service_id: str) -> bool:
     """
     service_unit = SERVICES_DIR / f"{PREFIX + service_id}.service"
     timer_unit = SERVICES_DIR / f"{PREFIX + service_id}.timer"
-    script = SCRIPTS_DIR / f"{service_id.replace("_", "-")}.bash"
+    service_script_name = service_id.replace("_", "-")
+    script = SCRIPTS_DIR / f"{service_script_name}.bash"
 
-    all_files_exist = all(
-        [
-            service_unit.exists(),
-            timer_unit.exists(),
-            script.exists(),
-        ]
-    )
-    no_files_exist = all(
-        [
-            not service_unit.exists(),
-            not timer_unit.exists(),
-            not script.exists(),
-        ]
-    )
+    service_unit_exists = service_unit.exists()
+    timer_unit_exists = timer_unit.exists()
+    script_exists = script.exists()
+
+    all_files_exist = all([service_unit_exists, timer_unit_exists, script_exists])
+    no_files_exist = not any([service_unit_exists, timer_unit_exists, script_exists])
 
     if all_files_exist:
         return True
     elif no_files_exist:
         return False
     else:
+        print(f"Service {service_id} is not properly installed.")
         if not service_unit.exists():
             print(f"Service unit file of {service_unit} is missing.")
         if not timer_unit.exists():
             print(f"Timer unit file of {timer_unit} is missing.")
         if not script.exists():
             print(f"Script file of {script} is missing.")
-        print(f"Service {service_id} is not properly installed.")
         return False
 
 
@@ -190,7 +183,8 @@ def force_remove(service_id: str) -> None:
     """Forcefully removes the service by disabling its timer and removing all related files."""
     service_unit = SERVICES_DIR / f"{PREFIX + service_id}.service"
     timer_unit = SERVICES_DIR / f"{PREFIX + service_id}.timer"
-    script = SCRIPTS_DIR / f"{service_id.replace('_', '-')}.bash"
+    service_script_name = service_id.replace("_", "-")
+    script = SCRIPTS_DIR / f"{service_script_name}.bash"
 
     if service_unit.exists():
         remove_unit(service_unit)
