@@ -301,6 +301,16 @@ class Service:
 
         print(f"Service {self.name} disabled successfully.")
 
+    def run(self) -> None:
+        """Runs the service script."""
+        if not self.exists():
+            raise ValueError(f"Service {self.name} does not exist.")
+
+        try:
+            commands.run(PREFIX + self.id)
+        except Exception as e:
+            print(f"Error running service {self.name}: {e}")
+
     def get_last_status(self) -> Status | None:
         """Retrieves the last status of the service from its logs."""
         service_logs = LOG_DIR / f"{self.id}.log"

@@ -115,5 +115,20 @@ def status(service_id: str, details: bool):
             click.echo(f"{service.name}: {service.get_last_status() or 'N/A'}")
 
 
+@main.command()
+@click.argument("service_id")
+def run(service_id: str):
+    """Runs a service script by its service ID."""
+    service = Service.get_service(service_id)
+    if not service:
+        click.echo(f"Service '{service_id}' not found.")
+        return
+    try:
+        service.run()
+        click.echo(f"Service '{service.name}' script was triggered.")
+    except Exception as e:
+        click.echo(f"Failed to run service script: {e}")
+
+
 if __name__ == "__main__":
     main()
