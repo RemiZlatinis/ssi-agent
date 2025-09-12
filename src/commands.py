@@ -54,7 +54,7 @@ def is_enabled(service_id: str) -> bool:
 
 def install_script(service_id: str, script: Path) -> None:
     """Installs a service script to the scripts directory."""
-    target_script = SCRIPTS_DIR / f"{service_id}.bash"
+    target_script = SCRIPTS_DIR / f"{service_id.replace("_", "-")}.bash"
 
     # Ensure the scripts directory exists
     subprocess.run(["sudo", "mkdir", "-p", str(SCRIPTS_DIR)], check=True)
@@ -70,19 +70,19 @@ def install_script(service_id: str, script: Path) -> None:
         exit(1)
 
 
-def remove_script(script: Path) -> None:
+def remove_script(service_id: str) -> None:
     """Removes a service script from the scripts directory."""
-    script_path = SCRIPTS_DIR / script.name
+    target_script = SCRIPTS_DIR / f"{service_id.replace("_", "-")}.bash"
 
-    if not script_path.exists():
-        print(f"Script {script_path} does not exist.")
+    if not target_script.exists():
+        print(f"Script {target_script} does not exist.")
         return
 
     try:
-        subprocess.run(["sudo", "rm", str(script_path)], check=True)
-        print(f"Script {script_path} removed successfully.")
+        subprocess.run(["sudo", "rm", str(target_script)], check=True)
+        print(f"Script {target_script} removed successfully.")
     except subprocess.CalledProcessError as e:
-        print(f"Error removing script {script_path}: {e}")
+        print(f"Error removing script {target_script}: {e}")
         exit(1)
 
 
@@ -112,7 +112,8 @@ def remove_unit(file: Path) -> None:
 
 def enable(service_id: str) -> None:
     """Enables the service by enabling its timer."""
-    command = ["sudo", "systemctl", "enable", "--now", f"{service_id}.timer"]
+    unit = PREFIX + service_id
+    command = ["sudo", "systemctl", "enable", "--now", f"{unit}.timer"]
     try:
         subprocess.run(command, check=True)
         print(f"Service {service_id} enabled successfully.")
@@ -123,7 +124,8 @@ def enable(service_id: str) -> None:
 
 def run(service_id: str) -> None:
     """Runs the service immediately."""
-    command = ["sudo", "systemctl", "start", f"{service_id}.service"]
+    unit = PREFIX + service_id
+    command = ["sudo", "systemctl", "start", f"{unit}.service"]
     try:
         subprocess.run(command, check=True)
         print(f"Service {service_id} started successfully.")
@@ -134,7 +136,8 @@ def run(service_id: str) -> None:
 
 def disable(service_id: str) -> None:
     """Disables the service by disabling its timer."""
-    command = ["sudo", "systemctl", "disable", "--now", f"{service_id}.timer"]
+    unit = PREFIX + service_id
+    command = ["sudo", "systemctl", "disable", "--now", f"{unit}.timer"]
     try:
         subprocess.run(command, check=True)
         print(f"Service {service_id} disabled successfully.")
@@ -192,4 +195,4 @@ def force_remove(service_id: str) -> None:
         _execute(f"sudo systemctl disable --now {timer_unit.name}")
         remove_unit(timer_unit)
     if script.exists():
-        remove_script(script)
+        remove_script(service_id)

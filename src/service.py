@@ -277,7 +277,7 @@ class Service:
             )
 
         commands.reload_daemon()
-        commands.enable(PREFIX + self.id)
+        commands.enable(self.id)
 
     def disable(self) -> None:
         """Disables the service."""
@@ -286,10 +286,10 @@ class Service:
             return
 
         # Remove the script
-        commands.remove_script(self.script)
+        commands.remove_script(self.id)
 
         # Disable the service timer
-        commands.disable(PREFIX + self.id)
+        commands.disable(self.id)
 
         # Remove its units
         units = [
@@ -307,7 +307,7 @@ class Service:
             raise ValueError(f"Service {self.name} does not exist.")
 
         try:
-            commands.run(PREFIX + self.id)
+            commands.run(self.id)
         except Exception as e:
             print(f"Error running service {self.name}: {e}")
 
