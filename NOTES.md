@@ -1,1 +1,0 @@
-The output of each script must be a tuple/array of 1 or 2 values. The first value is the result output and must be one of the following values ["OK", "UPDATE", "WARNING", "FAILURE"]. The second value can be an optional message.
