@@ -1,10 +1,11 @@
 """CLI tool for managing the Service Status Indicator Agent."""
 
 import click
-
+import requests
 
 from .service import Service
 from . import commands
+from . import config
 
 
 @click.group()
@@ -128,6 +129,25 @@ def run(service_id: str):
         click.echo(f"Service '{service.name}' script was triggered.")
     except Exception as e:
         click.echo(f"Failed to run service script: {e}")
+
+
+@main.command()
+@click.argument("uuid_agent_key")
+def register(uuid_agent_key: str):
+    """Register the agent with an agent key."""
+    try:
+        response = requests.post(config.URI_REGISTER, json={"key": uuid_agent_key})
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        response_message = response.json().get("message", "No message from server.")
+
+        config.save_agent_key(uuid_agent_key)
+        click.echo(response_message)
+    except requests.exceptions.RequestException as e:
+        click.echo(f"Failed to register agent key: {e}")
+        if e.response:
+            click.echo(f"Backend response: {e.response.text}")
+    except Exception as e:
+        click.echo(f"Failed to register agent key: {e}")
 
 
 if __name__ == "__main__":
