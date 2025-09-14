@@ -174,5 +174,41 @@ def unregister():
         click.echo(f"Failed to unregister agent: {e}")
 
 
+@main.command()
+def whoami():
+    """Display information about the current agent."""
+    agent_key = config.get_agent_key()
+    if not agent_key:
+        click.echo("No agent key found. Agent is not registered.")
+        return
+
+    try:
+        headers = {"Authorization": f"Agent {agent_key}"}
+        response = requests.get(config.URI_WHOAMI, headers=headers)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        agent_data = response.json()
+
+        click.echo("Agent Information:")
+        click.echo(f"  ID: {agent_data.get('id')}")
+        click.echo(f"  Name: {agent_data.get('name')}")
+        click.echo(f"  Created At: {agent_data.get('created_at')}")
+        click.echo(f"  IP Address: {agent_data.get('ip_address')}")
+        click.echo(f"  Registration Status: {agent_data.get('registration_status')}")
+
+        owner_data = agent_data.get("owner")
+        if owner_data:
+            click.echo("  Owner:")
+            click.echo(f"    ID: {owner_data.get('id')}")
+            click.echo(f"    Username: {owner_data.get('username')}")
+            click.echo(f"    Email: {owner_data.get('email') or 'N/A'}")
+
+    except requests.exceptions.RequestException as e:
+        click.echo(f"Failed to retrieve agent information: {e}")
+        if e.response:
+            click.echo(f"Backend response: {e.response.text}")
+    except Exception as e:
+        click.echo(f"Failed to retrieve agent information: {e}")
+
+
 if __name__ == "__main__":
     main()
