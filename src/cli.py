@@ -136,7 +136,9 @@ def run(service_id: str):
 def register(uuid_agent_key: str):
     """Register the agent with an agent key."""
     try:
-        response = requests.post(config.URI_REGISTER, json={"key": uuid_agent_key})
+        response = requests.post(
+            config.URI_REGISTER, json={"key": uuid_agent_key}, timeout=5
+        )
         response.raise_for_status()  # Raise an exception for HTTP errors
         response_message = response.json().get("message", "No message from server.")
 
@@ -160,7 +162,7 @@ def unregister():
 
     try:
         headers = {"Authorization": f"Agent {agent_key}"}
-        response = requests.post(config.URI_UNREGISTER, headers=headers)
+        response = requests.post(config.URI_UNREGISTER, headers=headers, timeout=5)
         response.raise_for_status()  # Raise an exception for HTTP errors
         response_message = response.json().get("message", "No message from server.")
 
@@ -184,7 +186,7 @@ def whoami():
 
     try:
         headers = {"Authorization": f"Agent {agent_key}"}
-        response = requests.get(config.URI_WHOAMI, headers=headers)
+        response = requests.get(config.URI_WHOAMI, headers=headers, timeout=5)
         response.raise_for_status()  # Raise an exception for HTTP errors
         agent_data = response.json()
 
