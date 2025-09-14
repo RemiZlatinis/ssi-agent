@@ -43,3 +43,20 @@ def get_agent_key() -> str | None:
         return None
 
     return config.get("agent_key")
+
+
+def remove_agent_key():
+    """Removes the agent key from the config file."""
+    if not CONFIG_FILE.exists():
+        return
+
+    try:
+        with open(CONFIG_FILE, "r") as f:
+            config = json.load(f)
+    except (json.JSONDecodeError, FileNotFoundError):
+        return
+
+    if "agent_key" in config:
+        del config["agent_key"]
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(config, f, indent=4)

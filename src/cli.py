@@ -150,5 +150,29 @@ def register(uuid_agent_key: str):
         click.echo(f"Failed to register agent key: {e}")
 
 
+@main.command()
+def unregister():
+    """Unregister the agent and remove the agent key."""
+    agent_key = config.get_agent_key()
+    if not agent_key:
+        click.echo("No agent key found. Agent is not registered.")
+        return
+
+    try:
+        headers = {"Authorization": f"Agent {agent_key}"}
+        response = requests.post(config.URI_UNREGISTER, headers=headers)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        response_message = response.json().get("message", "No message from server.")
+
+        config.remove_agent_key()
+        click.echo(response_message)
+    except requests.exceptions.RequestException as e:
+        click.echo(f"Failed to unregister agent: {e}")
+        if e.response:
+            click.echo(f"Backend response: {e.response.text}")
+    except Exception as e:
+        click.echo(f"Failed to unregister agent: {e}")
+
+
 if __name__ == "__main__":
     main()
