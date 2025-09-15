@@ -231,7 +231,7 @@ class Service:
                 content = template_content.format(
                     id=self.id,
                     description=self.description,
-                    script=(SCRIPTS_DIR / self.script.name).absolute(),
+                    script=script_target.absolute(),
                     timeout=self.timeout,
                 )
             if not content:
