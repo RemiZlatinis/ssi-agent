@@ -1,46 +1,143 @@
 """
-WebSocket server to receive and handle log messages from the watcher.
+WebSocket server to receive and handle event-driven messages from the watcher.
 """
 
 import asyncio
 import websockets
+import json
+from typing import Dict, Any
 
-# Store connected clients
-CLIENTS = set()
+from .models import AgentHelloEvent, ServiceAddedEvent, ServiceRemovedEvent, StatusUpdateEvent
 
-
-async def register(websocket):
-    """Register a new client connection"""
-    CLIENTS.add(websocket)
-    print("Client connected")
-
-
-async def unregister(websocket):
-    """Unregister a client connection"""
-    CLIENTS.remove(websocket)
-    print("Client disconnected")
+# Store connected clients and their state
+CLIENTS: Dict[str, websockets.WebSocketServerProtocol] = {}
+AGENTS_STATE: Dict[str, Dict[str, Any]] = {}
+# Track which WebSocket belongs to which agent
+WEBSOCKET_TO_AGENT: Dict[websockets.WebSocketServerProtocol, str] = {}
 
 
-async def broadcast(message):
-    """Broadcast message to all connected clients"""
-    if CLIENTS:
-        await asyncio.gather(*[client.send(message) for client in CLIENTS])
+async def register_agent(websocket, agent_key):
+    """Register a new agent connection"""
+    CLIENTS[agent_key] = websocket
+    AGENTS_STATE[agent_key] = {"services": {}}
+    print(f"Agent {agent_key} connected")
+
+
+async def unregister_agent(agent_key):
+    """Unregister an agent connection and clean up state"""
+    if agent_key in CLIENTS:
+        del CLIENTS[agent_key]
+    if agent_key in AGENTS_STATE:
+        del AGENTS_STATE[agent_key]
+    print(f"Agent {agent_key} disconnected")
+
+
+async def handle_agent_hello(websocket, data):
+    """Handle agent_hello event"""
+    try:
+        event = AgentHelloEvent(**data)
+        await register_agent(websocket, event.agent_key)
+        WEBSOCKET_TO_AGENT[websocket] = event.agent_key
+
+        # Store agent services
+        for service in event.services:
+            AGENTS_STATE[event.agent_key]["services"][service.id] = service.model_dump()
+
+        print(f"Agent {event.agent_key} registered with {len(event.services)} services")
+    except Exception as e:
+        print(f"Error handling agent_hello: {e}")
+
+
+async def handle_service_added(websocket, data):
+    """Handle service_added event"""
+    try:
+        agent_key = WEBSOCKET_TO_AGENT.get(websocket)
+        if not agent_key:
+            print("Unknown WebSocket connection for service_added event")
+            return
+
+        event = ServiceAddedEvent(**data)
+        if agent_key in AGENTS_STATE:
+            AGENTS_STATE[agent_key]["services"][event.service.id] = event.service.model_dump()
+            print(f"Service {event.service.id} added to agent {agent_key}")
+        else:
+            print(f"Unknown agent {agent_key} for service_added event")
+    except Exception as e:
+        print(f"Error handling service_added: {e}")
+
+
+async def handle_service_removed(websocket, data):
+    """Handle service_removed event"""
+    try:
+        agent_key = WEBSOCKET_TO_AGENT.get(websocket)
+        if not agent_key:
+            print("Unknown WebSocket connection for service_removed event")
+            return
+
+        event = ServiceRemovedEvent(**data)
+        if agent_key in AGENTS_STATE:
+            if event.service_id in AGENTS_STATE[agent_key]["services"]:
+                del AGENTS_STATE[agent_key]["services"][event.service_id]
+                print(f"Service {event.service_id} removed from agent {agent_key}")
+            else:
+                print(f"Service {event.service_id} not found for agent {agent_key}")
+        else:
+            print(f"Unknown agent {agent_key} for service_removed event")
+    except Exception as e:
+        print(f"Error handling service_removed: {e}")
+
+
+async def handle_status_update(websocket, data):
+    """Handle status_update event"""
+    try:
+        agent_key = WEBSOCKET_TO_AGENT.get(websocket)
+        if not agent_key:
+            print("Unknown WebSocket connection for status_update event")
+            return
+
+        event = StatusUpdateEvent(**data)
+        print(f"Status update from agent {agent_key}: {event.update.service_id} - {event.update.status}")
+
+        # Here you could broadcast to connected clients, store in database, etc.
+        # For now, just log it
+
+    except Exception as e:
+        print(f"Error handling status_update: {e}")
 
 
 async def handle_connection(websocket):
     """Handle incoming WebSocket connections"""
-    await register(websocket)
+    agent_key = None
     try:
         async for message in websocket:
-            print(f"Received log: {message}")
-            # Broadcast the message to all connected clients
-            # await broadcast(message)
+            try:
+                data = json.loads(message)
+                event_type = data.get("event")
+
+                if event_type == "agent_hello":
+                    await handle_agent_hello(websocket, data)
+                    agent_key = data.get("agent_key")
+                elif event_type == "service_added":
+                    await handle_service_added(websocket, data)
+                elif event_type == "service_removed":
+                    await handle_service_removed(websocket, data)
+                elif event_type == "status_update":
+                    await handle_status_update(websocket, data)
+                else:
+                    print(f"Received unknown event type: {event_type}")
+
+            except json.JSONDecodeError as e:
+                print(f"Invalid JSON received: {e}")
+            except Exception as e:
+                print(f"Error processing message: {e}")
+
     except websockets.exceptions.ConnectionClosedError as e:
         print(f"Connection closed with error: {e}")
     except Exception as e:
         print(f"Error handling connection: {e}")
     finally:
-        await unregister(websocket)
+        if agent_key:
+            await unregister_agent(agent_key)
 
 
 async def main():

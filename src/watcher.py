@@ -6,7 +6,8 @@ new lines from any modified log files to the WebSocket server in real-time.
 import os
 import asyncio
 import websockets
-import json
+import threading
+import time
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -14,17 +15,29 @@ from watchdog.events import FileSystemEventHandler
 from .constants import LOG_DIR
 from .service import Service
 from .parsers import parse_log_line
+from .models import (
+    AgentHelloEvent,
+    ServiceInfo,
+    ServiceAddedEvent,
+    ServiceRemovedEvent,
+    StatusUpdateEvent,
+    StatusUpdate,
+)
+from .config import get_agent_key
 
 WEBSOCKET_URI = "ws://localhost:5000"
 PING_INTERVAL_SECONDS = 10
 
+WEBSOCKET_URI = "ws://192.168.1.20:8000/ws/agent/42fa03fd-a760-4bbc-800b-64061230c515/"
+
 
 class LogHandler(FileSystemEventHandler):
-    def __init__(self, websocket, loop):
+    def __init__(self, websocket, loop, agent_key):
         super().__init__()
         self.file_positions = {}  # Stores last read positions
         self.websocket = websocket
         self.loop = loop
+        self.agent_key = agent_key
 
     def on_modified(self, event):
         if event.is_directory:
@@ -58,23 +71,26 @@ class LogHandler(FileSystemEventHandler):
 
                         timestamp, status, message = parse_log_line(last_line)
 
-                        log_data = {
-                            "service": service.to_dict(),
-                            "timestamp": timestamp,
-                            "status": status,
-                            "message": message,
-                        }
+                        # Create StatusUpdate and StatusUpdateEvent
+                        status_update = StatusUpdate(
+                            service_id=service_id,
+                            timestamp=timestamp,
+                            status=status,
+                            message=message or "",  # Handle None message
+                        )
+                        status_event = StatusUpdateEvent(update=status_update)
+
                         asyncio.run_coroutine_threadsafe(
-                            self.send_log_message(log_data), self.loop
+                            self.send_status_update(status_event), self.loop
                         )
         except Exception as e:
             print(f"Error reading {file_path}: {e}")
 
-    async def send_log_message(self, log_data):
+    async def send_status_update(self, status_event):
         try:
-            await self.websocket.send(json.dumps(log_data))
+            await self.websocket.send(status_event.model_dump_json())
         except Exception as e:
-            print(f"Error sending log message to WebSocket server: {e}")
+            print(f"Error sending status update to WebSocket server: {e}")
 
 
 async def connect_with_retry():
@@ -109,22 +125,111 @@ async def connect_with_retry():
             await asyncio.sleep(retry_delay)
 
 
+async def send_agent_hello(websocket, agent_key):
+    """Send the initial agent_hello event with all current services."""
+    try:
+        services = Service.get_services()
+        service_infos = []
+
+        for service in services:
+            service_info = ServiceInfo(
+                id=service.id,
+                name=service.name,
+                description=service.description,
+                version=service.version,
+                schedule=service.schedule,
+            )
+            service_infos.append(service_info)
+
+        hello_event = AgentHelloEvent(agent_key=agent_key, services=service_infos)
+
+        await websocket.send(hello_event.model_dump_json())
+        print(f"Sent agent_hello event with {len(service_infos)} services")
+    except Exception as e:
+        print(f"Error sending agent_hello event: {e}")
+
+
+def watch_service_changes(websocket, loop, agent_key):
+    """Monitor service changes and send appropriate events."""
+    known_services = set()
+    scan_interval = 15  # seconds
+
+    while True:
+        try:
+            current_services = Service.get_services()
+            current_service_ids = {service.id for service in current_services}
+
+            # Check for new services
+            new_services = current_service_ids - known_services
+            for service_id in new_services:
+                service = next(s for s in current_services if s.id == service_id)
+                service_info = ServiceInfo(
+                    id=service.id,
+                    name=service.name,
+                    description=service.description,
+                    version=service.version,
+                    schedule=service.schedule,
+                )
+                added_event = ServiceAddedEvent(service=service_info)
+                asyncio.run_coroutine_threadsafe(
+                    websocket.send(added_event.model_dump_json()), loop
+                )
+                print(f"Service {service_id} added")
+
+            # Check for removed services
+            removed_services = known_services - current_service_ids
+            for service_id in removed_services:
+                removed_event = ServiceRemovedEvent(service_id=service_id)
+                asyncio.run_coroutine_threadsafe(
+                    websocket.send(removed_event.model_dump_json()), loop
+                )
+                print(f"Service {service_id} removed")
+
+            known_services = current_service_ids
+            time.sleep(scan_interval)
+
+        except Exception as e:
+            print(f"Error in service change watcher: {e}")
+            time.sleep(scan_interval)
+
+
 async def run_daemon():
     if not os.path.exists(LOG_DIR):
         print(f"Log directory {LOG_DIR} does not exist.")
         return
 
+    # Get agent key
+    agent_key = get_agent_key()
+    if not agent_key:
+        print("No agent key found. Please register the agent first.")
+        return
+    else:
+        print(f"Using agent key: {agent_key}")
+
     while True:
         websocket = None
         observer = None
+        service_watcher_thread = None
         try:
             try:
                 websocket = await connect_with_retry()
                 loop = asyncio.get_running_loop()
-                event_handler = LogHandler(websocket, loop)
+
+                # Send initial agent_hello event
+                await send_agent_hello(websocket, agent_key)
+
+                event_handler = LogHandler(websocket, loop, agent_key)
                 observer = Observer()
                 observer.schedule(event_handler, str(LOG_DIR), recursive=False)
                 observer.start()
+
+                # Start service change detection thread
+                service_watcher_thread = threading.Thread(
+                    target=watch_service_changes,
+                    args=(websocket, loop, agent_key),
+                    daemon=True,
+                )
+                service_watcher_thread.start()
 
                 print(f"Watching for changes in: {LOG_DIR}")
                 while True:
