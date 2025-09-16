@@ -6,13 +6,13 @@ APP_NAME = "service-status-indicator-agent"
 PREFIX = "ssi_"  # Prefix for systemd services
 
 # Directories
-SERVICES_DIR = Path("/usr/local/lib/systemd/system/")
-SCRIPTS_DIR = Path("/usr/local/lib/service-status-indicator/")
+SERVICES_DIR = Path("/etc/systemd/system")
+SCRIPTS_DIR = Path("/opt/service-status-indicator")
 LOG_DIR = Path("/var/log/service-status-indicator")
-CONFIG_DIR = Path.home() / ".config" / APP_NAME
+CONFIG_DIR = Path("/etc/service-status-indicator")
 
 # Config file
-CONFIG_FILE = CONFIG_DIR / "config.json"
+CONFIG_FILE = CONFIG_DIR / "config.json"  # Match install.sh format
 
 # Backend API
 BACKEND_HOST = "192.168.1.20:8000"

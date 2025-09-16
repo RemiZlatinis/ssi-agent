@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 # Configuration
 SERVICE_NAME="service-status-indicator-agent"
 SERVICE_USER="service-status-indicator"
-SERVICE_DIR="/opt/service-status-indicator"
+SERVICE_SCRIPTS_DIR="/opt/service-status-indicator"
 CONFIG_DIR="/etc/service-status-indicator"
 LOG_DIR="/var/log/service-status-indicator"
 
@@ -41,7 +41,7 @@ check_root() {
 create_user() {
     if ! id "$SERVICE_USER" &>/dev/null; then
         print_status "Creating system user: $SERVICE_USER"
-        useradd --system --shell /bin/false --home-dir "$SERVICE_DIR" --create-home "$SERVICE_USER"
+        useradd --system --shell /bin/false --home-dir "$SERVICE_SCRIPTS_DIR" --create-home "$SERVICE_USER"
     else
         print_status "User $SERVICE_USER already exists"
     fi
@@ -50,17 +50,17 @@ create_user() {
 create_directories() {
     print_status "Creating directories..."
 
-    mkdir -p "$SERVICE_DIR"
+    mkdir -p "$SERVICE_SCRIPTS_DIR"
     mkdir -p "$CONFIG_DIR"
     mkdir -p "$LOG_DIR"
 
     # Create bin directory for entry point scripts
-    mkdir -p "$SERVICE_DIR/bin"
+    mkdir -p "$SERVICE_SCRIPTS_DIR/bin"
 
-    chown -R "$SERVICE_USER:$SERVICE_USER" "$SERVICE_DIR"
+    chown -R "$SERVICE_USER:$SERVICE_USER" "$SERVICE_SCRIPTS_DIR"
     chown "$SERVICE_USER:$SERVICE_USER" "$LOG_DIR"
     chown "$SERVICE_USER:$SERVICE_USER" "$CONFIG_DIR"
-    chmod 755 "$SERVICE_DIR"
+    chmod 755 "$SERVICE_SCRIPTS_DIR"
     chmod 755 "$LOG_DIR"
     chmod 755 "$CONFIG_DIR"
 }
@@ -69,10 +69,10 @@ create_virtual_environment() {
     print_status "Creating Python virtual environment..."
 
     # Create virtual environment
-    python3 -m venv "$SERVICE_DIR/venv"
+    python3 -m venv "$SERVICE_SCRIPTS_DIR/venv"
 
     # Activate and install dependencies
-    source "$SERVICE_DIR/venv/bin/activate"
+    source "$SERVICE_SCRIPTS_DIR/venv/bin/activate"
 
     # Install the package and its dependencies
     pip install --upgrade pip
@@ -84,7 +84,7 @@ create_virtual_environment() {
     deactivate
 
     # Set ownership of virtual environment
-    chown -R "$SERVICE_USER:$SERVICE_USER" "$SERVICE_DIR/venv"
+    chown -R "$SERVICE_USER:$SERVICE_USER" "$SERVICE_SCRIPTS_DIR/venv"
 }
 
 install_service_file() {
@@ -105,7 +105,7 @@ install_service_file() {
     # Update paths in service file if needed
     sed -i "s|User=.*|User=$SERVICE_USER|" "/etc/systemd/system/$SERVICE_NAME.service"
     sed -i "s|Group=.*|Group=$SERVICE_USER|" "/etc/systemd/system/$SERVICE_NAME.service"
-    sed -i "s|ExecStart=.*|ExecStart=$SERVICE_DIR/venv/bin/service-status-indicator-daemon|" "/etc/systemd/system/$SERVICE_NAME.service"
+    sed -i "s|ExecStart=.*|ExecStart=$SERVICE_SCRIPTS_DIR/venv/bin/service-status-indicator-daemon|" "/etc/systemd/system/$SERVICE_NAME.service"
 }
 
 setup_service() {
@@ -122,16 +122,17 @@ setup_service() {
 create_config() {
     print_status "Creating default configuration..."
 
-    cat > "$CONFIG_DIR/config.yaml" << EOF
-# Service Status Indicator Agent Configuration
-websocket_uri: "ws://localhost:5000"
-log_level: "INFO"
-log_dir: "$LOG_DIR"
-config_dir: "$CONFIG_DIR"
+    cat > "$CONFIG_DIR/config.json" << EOF
+{
+    "websocket_uri": "ws://localhost:5000",
+    "log_level": "INFO",
+    "log_dir": "$LOG_DIR",
+    "config_dir": "$CONFIG_DIR"
+}
 EOF
 
-    chown "$SERVICE_USER:$SERVICE_USER" "$CONFIG_DIR/config.yaml"
-    chmod 644 "$CONFIG_DIR/config.yaml"
+    chown "$SERVICE_USER:$SERVICE_USER" "$CONFIG_DIR/config.json"
+    chmod 644 "$CONFIG_DIR/config.json"
 }
 
 cleanup() {
@@ -142,7 +143,7 @@ cleanup() {
     echo "2. Check service status: systemctl status $SERVICE_NAME"
     echo "3. View logs: journalctl -u $SERVICE_NAME -f"
     echo ""
-    echo "Configuration file: $CONFIG_DIR/config.yaml"
+    echo "Configuration file: $CONFIG_DIR/config.json"
     echo "Log directory: $LOG_DIR"
 }
 
