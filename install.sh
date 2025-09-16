@@ -38,6 +38,64 @@ check_root() {
     fi
 }
 
+check_system_requirements() {
+    print_status "Checking system requirements..."
+
+    # Check if running on Linux
+    if [[ "$OSTYPE" != "linux-gnu"* ]]; then
+        print_error "This installer is designed for Linux systems only"
+        exit 1
+    fi
+
+    # Check for systemd
+    if ! command -v systemctl &> /dev/null; then
+        print_error "systemd is required but not found. This installer requires a systemd-based Linux distribution."
+        exit 1
+    fi
+
+    # Check if systemd is the init system
+    if [[ ! -d /run/systemd/system ]]; then
+        print_error "systemd does not appear to be the active init system"
+        exit 1
+    fi
+
+    # Check for Python 3
+    if ! command -v python3 &> /dev/null; then
+        print_error "Python 3 is required but not found"
+        print_error "Please install Python 3 first (apt install python3)"
+        exit 1
+    fi
+
+    # Check Python version (minimum 3.9)
+    PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
+    if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)'; then
+        print_error "Python 3.9 or higher is required. Found: Python $PYTHON_VERSION"
+        exit 1
+    fi
+
+    # Check for python3-venv
+    if ! python3 -c 'import venv' &> /dev/null; then
+        print_error "python3-venv is required but not available"
+        print_error "Please install it first (apt install python3-venv)"
+        exit 1
+    fi
+
+    # Check for pip
+    if ! command -v pip3 &> /dev/null && ! python3 -m pip --version &> /dev/null; then
+        print_error "pip is required but not found"
+        print_error "Please install pip first (apt install python3-pip)"
+        exit 1
+    fi
+
+    # Check for basic build tools (for potential native extensions)
+    if ! command -v gcc &> /dev/null; then
+        print_warning "gcc not found - some Python packages may fail to install"
+        print_warning "Consider installing build-essential: apt install build-essential"
+    fi
+
+    print_status "System requirements check passed ✓"
+}
+
 create_user() {
     if ! id "$SERVICE_USER" &>/dev/null; then
         print_status "Creating system user: $SERVICE_USER"
@@ -147,17 +205,126 @@ cleanup() {
     echo "Log directory: $LOG_DIR"
 }
 
-main() {
-    print_status "Starting Service Status Indicator Agent installation..."
+uninstall_agent() {
+    print_status "Starting Service Status Indicator Agent uninstallation..."
 
-    check_root
-    create_user
-    create_directories
-    create_virtual_environment
-    install_service_file
-    create_config
-    setup_service
-    cleanup
+    # Stop and disable service first
+    if systemctl is-active --quiet "$SERVICE_NAME"; then
+        print_status "Stopping service..."
+        systemctl stop "$SERVICE_NAME"
+    fi
+
+    if systemctl is-enabled --quiet "$SERVICE_NAME"; then
+        print_status "Disabling service..."
+        systemctl disable "$SERVICE_NAME"
+    fi
+
+    # Remove systemd service file
+    if [[ -f "/etc/systemd/system/$SERVICE_NAME.service" ]]; then
+        print_status "Removing systemd service file..."
+        rm -f "/etc/systemd/system/$SERVICE_NAME.service"
+        systemctl daemon-reload
+    fi
+
+    # Remove virtual environment
+    if [[ -d "$SERVICE_SCRIPTS_DIR/venv" ]]; then
+        print_warning "Removing virtual environment..."
+        rm -rf "$SERVICE_SCRIPTS_DIR/venv"
+    fi
+
+    # Remove application directory
+    if [[ -d "$SERVICE_SCRIPTS_DIR" ]]; then
+        print_warning "Removing application directory..."
+        rm -rf "$SERVICE_SCRIPTS_DIR"
+    fi
+
+    # Remove configuration directory
+    if [[ -d "$CONFIG_DIR" ]]; then
+        print_warning "Removing configuration directory..."
+        rm -rf "$CONFIG_DIR"
+    fi
+
+    # Ask about log directory (contains user data)
+    if [[ -d "$LOG_DIR" ]]; then
+        echo ""
+        read -p "Remove log directory ($LOG_DIR) containing service logs? [y/N]: " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            print_warning "Removing log directory..."
+            rm -rf "$LOG_DIR"
+        else
+            print_status "Keeping log directory (you can remove it manually later)"
+        fi
+    fi
+
+    # Remove system user (only if no other files owned by it)
+    if id "$SERVICE_USER" &>/dev/null; then
+        # Check if user owns any other files
+        USER_FILES=$(find / -user "$SERVICE_USER" 2>/dev/null | wc -l)
+        if [[ $USER_FILES -le 1 ]]; then  # Only the user's home directory
+            print_status "Removing system user..."
+            userdel "$SERVICE_USER"
+        else
+            print_warning "Keeping system user (other files still owned by it)"
+        fi
+    fi
+
+    print_status "Uninstallation completed!"
+    echo ""
+    echo "The following may have been removed:"
+    echo "  - Systemd service: $SERVICE_NAME"
+    echo "  - Application directory: $SERVICE_SCRIPTS_DIR"
+    echo "  - Configuration: $CONFIG_DIR"
+    echo "  - System user: $SERVICE_USER"
+    echo "  - Virtual environment and dependencies"
+    echo ""
+    echo "Note: Log files may still exist in $LOG_DIR if you chose to keep them"
+}
+
+main() {
+    # Parse command line arguments
+    ACTION="install"
+
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --remove|--uninstall)
+                ACTION="uninstall"
+                shift
+                ;;
+            --help|-h)
+                echo "Service Status Indicator Agent Installer"
+                echo ""
+                echo "Usage:"
+                echo "  $0                    # Install the agent"
+                echo "  $0 --remove          # Uninstall the agent"
+                echo "  $0 --uninstall       # Uninstall the agent"
+                echo "  $0 --help            # Show this help"
+                exit 0
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                echo "Use --help for usage information"
+                exit 1
+                ;;
+        esac
+    done
+
+    if [[ "$ACTION" == "uninstall" ]]; then
+        check_root
+        uninstall_agent
+    else
+        print_status "Starting Service Status Indicator Agent installation..."
+
+        check_root
+        check_system_requirements
+        create_user
+        create_directories
+        create_virtual_environment
+        install_service_file
+        create_config
+        setup_service
+        cleanup
+    fi
 }
 
 # Run main function
