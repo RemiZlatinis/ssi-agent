@@ -52,6 +52,7 @@ line-length = 88
 strict = true
 ignore_missing_imports = true
 exclude = ["tests/"]
+disallow_subclassing_any = false
 
 [tool.pytest.ini_options]
 minversion = "6.0"

@@ -32,7 +32,7 @@ PING_INTERVAL_SECONDS = 10
 WEBSOCKET_URI = "ws://192.168.1.20:8000/ws/agent/42fa03fd-a760-4bbc-800b-64061230c515/"
 
 
-class LogHandler(FileSystemEventHandler):  # type: ignore
+class LogHandler(FileSystemEventHandler):
     def __init__(
         self,
         websocket: Any,
