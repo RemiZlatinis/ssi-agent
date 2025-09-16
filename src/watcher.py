@@ -126,7 +126,10 @@ async def connect_with_retry():
 
 
 async def send_agent_hello(websocket, agent_key):
-    """Send the initial agent_hello event with all current services."""
+    """
+    Send the initial agent_hello event with all current services.
+    Returns the list of services if successful, None otherwise.
+    """
     try:
         services = Service.get_services()
         service_infos = []
@@ -145,13 +148,18 @@ async def send_agent_hello(websocket, agent_key):
 
         await websocket.send(hello_event.model_dump_json())
         print(f"Sent agent_hello event with {len(service_infos)} services")
+        return service_infos
     except Exception as e:
         print(f"Error sending agent_hello event: {e}")
+        return None
 
 
-def watch_service_changes(websocket, loop, agent_key):
+def watch_service_changes(websocket, loop, agent_key, initial_services=None):
     """Monitor service changes and send appropriate events."""
-    known_services = set()
+    if initial_services is None:
+        known_services = set()
+    else:
+        known_services = {service.id for service in initial_services}
     scan_interval = 15  # seconds
 
     while True:
@@ -216,7 +224,10 @@ async def run_daemon():
                 loop = asyncio.get_running_loop()
 
                 # Send initial agent_hello event
-                await send_agent_hello(websocket, agent_key)
+                initial_services = await send_agent_hello(websocket, agent_key)
+                if initial_services is None:
+                    # Failed to send hello, trigger reconnection
+                    raise ConnectionError("Failed to send agent_hello event")
 
                 event_handler = LogHandler(websocket, loop, agent_key)
                 observer = Observer()
@@ -226,7 +237,7 @@ async def run_daemon():
                 # Start service change detection thread
                 service_watcher_thread = threading.Thread(
                     target=watch_service_changes,
-                    args=(websocket, loop, agent_key),
+                    args=(websocket, loop, agent_key, initial_services),
                     daemon=True,
                 )
                 service_watcher_thread.start()
