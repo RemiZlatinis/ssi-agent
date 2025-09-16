@@ -45,6 +45,10 @@ jobs:
         run: |
           poetry install
 
+      - name: Create setup.py
+        run: |
+          poetry build
+
       - name: Create systemd service file
         run: |
           mkdir -p systemd
@@ -128,6 +132,10 @@ jobs:
       - name: Install Python dependencies
         run: |
           poetry install
+
+      - name: Create setup.py
+        run: |
+          poetry build
 
       - name: Create systemd service file
         run: |
