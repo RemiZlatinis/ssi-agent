@@ -4,6 +4,7 @@ import click
 import requests
 
 from . import commands, config
+from .constants import URI_REGISTER, URI_UNREGISTER, URI_WHOAMI
 from .service import Service
 
 
@@ -137,9 +138,7 @@ def run(service_id: str) -> None:
 def register(uuid_agent_key: str) -> None:
     """Register the agent with an agent key."""
     try:
-        response = requests.post(
-            config.URI_REGISTER, json={"key": uuid_agent_key}, timeout=5
-        )
+        response = requests.post(URI_REGISTER, json={"key": uuid_agent_key}, timeout=5)
         response.raise_for_status()  # Raise an exception for HTTP errors
         response_message = response.json().get("message", "No message from server.")
 
@@ -163,7 +162,7 @@ def unregister() -> None:
 
     try:
         headers = {"Authorization": f"Agent {agent_key}"}
-        response = requests.post(config.URI_UNREGISTER, headers=headers, timeout=5)
+        response = requests.post(URI_UNREGISTER, headers=headers, timeout=5)
         response.raise_for_status()  # Raise an exception for HTTP errors
         response_message = response.json().get("message", "No message from server.")
 
@@ -187,7 +186,7 @@ def whoami() -> None:
 
     try:
         headers = {"Authorization": f"Agent {agent_key}"}
-        response = requests.get(config.URI_WHOAMI, headers=headers, timeout=5)
+        response = requests.get(URI_WHOAMI, headers=headers, timeout=5)
         response.raise_for_status()  # Raise an exception for HTTP errors
         agent_data = response.json()
 

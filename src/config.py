@@ -1,16 +1,8 @@
 """Configuration management for the Service Status Indicator Agent."""
 
 import json
-from pathlib import Path
 
-APP_NAME = "ssi-agent"
-CONFIG_DIR = Path.home() / ".config" / APP_NAME
-CONFIG_FILE = CONFIG_DIR / "config.json"
-
-BACKEND_HOST = "192.168.1.20:8000"
-URI_REGISTER = f"http://{BACKEND_HOST}/api/agents/register/"
-URI_UNREGISTER = f"http://{BACKEND_HOST}/api/agents/unregister/"
-URI_WHOAMI = f"http://{BACKEND_HOST}/api/agents/me/"
+from .constants import CONFIG_DIR, CONFIG_FILE
 
 
 def save_agent_key(agent_key: str) -> None:
