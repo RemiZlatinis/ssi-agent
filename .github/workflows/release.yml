@@ -32,14 +32,12 @@ jobs:
         run: gem install fpm
 
       - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          export PATH="$HOME/.local/bin:$PATH"
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
 
       - name: Install Python dependencies
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           poetry install --no-dev
 
       - name: Create systemd service file
@@ -113,14 +111,12 @@ jobs:
         run: gem install fpm
 
       - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          export PATH="$HOME/.local/bin:$PATH"
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
 
       - name: Install Python dependencies
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           poetry install --no-dev
 
       - name: Create systemd service file
@@ -203,10 +199,10 @@ jobs:
           arch=('any')
           url="https://github.com/${GITHUB_REPOSITORY}"
           license=('MIT')
-          depends=('python' 'python-websockets' 'python-watchdog' 'python-click' 'python-pydantic' 'python-requests' 'systemd')
-          makedepends=('python-setuptools')
+          depends('python' 'python-websockets' 'python-watchdog' 'python-click' 'python-pydantic' 'python-requests' 'systemd')
+          makedepends('python-setuptools')
           source=("\${pkgname}::git+https://github.com/${GITHUB_REPOSITORY}.git#tag=v\${pkgver}")
-          sha256sums=('SKIP')
+          sha256sums('SKIP')
 
           build() {
               cd "\${pkgname}"
