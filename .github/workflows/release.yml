@@ -43,7 +43,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          poetry install --no-dev
+          poetry install
 
       - name: Create systemd service file
         run: |
@@ -127,7 +127,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          poetry install --no-dev
+          poetry install
 
       - name: Create systemd service file
         run: |
