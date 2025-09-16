@@ -69,8 +69,8 @@ class Service:
             raise ValueError("Service description cannot exceed 255 characters.")
         if self.timeout <= 1:
             raise ValueError("Timeout cannot be less then a second.")
-        if self.timeout > 60:
-            raise ValueError("Timeout cannot be greater than 60 seconds.")
+        # if self.timeout > 60:
+        #     raise ValueError("Timeout cannot be greater than 60 seconds.")
 
         validate_schedule(self.schedule)
 
@@ -299,6 +299,7 @@ class Service:
         for unit in units:
             commands.remove_unit(unit)
 
+        commands.reload_daemon()
         print(f"Service {self.name} disabled successfully.")
 
     def run(self) -> None:
