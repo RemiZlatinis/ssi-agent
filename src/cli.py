@@ -8,14 +8,14 @@ from .constants import URI_REGISTER, URI_UNREGISTER, URI_WHOAMI
 from .service import Service
 
 
-@click.group()  # type: ignore[misc]
+@click.group()
 def main() -> None:
     """A CLI tool for managing the Service Status Indicator Agent."""
     pass
 
 
-@main.command()  # type: ignore[misc]
-@click.argument("service_script_path", type=click.Path(exists=True, dir_okay=False))  # type: ignore[misc]
+@main.command()
+@click.argument("service_script_path", type=click.Path(exists=True, dir_okay=False))
 def add(service_script_path: str) -> None:
     """Add a new service."""
     try:
@@ -30,9 +30,9 @@ def add(service_script_path: str) -> None:
         click.echo(f"Failed to add service: {e}")
 
 
-@main.command()  # type: ignore[misc]
-@click.argument("service_id")  # type: ignore[misc]
-@click.option("-f", "--force", is_flag=True, help="Force removal of the service.")  # type: ignore[misc]
+@main.command()
+@click.argument("service_id")
+@click.option("-f", "--force", is_flag=True, help="Force removal of the service.")
 def remove(service_id: str, force: bool) -> None:
     """Remove a service by its ID."""
     if force:
@@ -55,7 +55,7 @@ def remove(service_id: str, force: bool) -> None:
         click.echo(f"Failed to remove service: {e}")
 
 
-@main.command()  # type: ignore[misc]
+@main.command()
 def list() -> None:
     """List all available services."""
     services = Service.get_services()
@@ -92,9 +92,9 @@ def list() -> None:
         )
 
 
-@main.command()  # type: ignore[misc]
-@click.argument("service_id", required=False)  # type: ignore[misc]
-@click.option("-d", "--details", is_flag=True, help="Display detailed status.")  # type: ignore[misc]
+@main.command()
+@click.argument("service_id", required=False)
+@click.option("-d", "--details", is_flag=True, help="Display detailed status.")
 def status(service_id: str | None, details: bool) -> None:
     """Display the status of a service or all services."""
     if service_id:
@@ -118,8 +118,8 @@ def status(service_id: str | None, details: bool) -> None:
             click.echo(f"{service.name}: {service.get_last_status() or 'N/A'}")
 
 
-@main.command()  # type: ignore[misc]
-@click.argument("service_id")  # type: ignore[misc]
+@main.command()
+@click.argument("service_id")
 def run(service_id: str) -> None:
     """Runs a service script by its service ID."""
     service = Service.get_service(service_id)
@@ -133,8 +133,8 @@ def run(service_id: str) -> None:
         click.echo(f"Failed to run service script: {e}")
 
 
-@main.command()  # type: ignore[misc]
-@click.argument("uuid_agent_key")  # type: ignore[misc]
+@main.command()
+@click.argument("uuid_agent_key")
 def register(uuid_agent_key: str) -> None:
     """Register the agent with an agent key."""
     try:
@@ -152,7 +152,7 @@ def register(uuid_agent_key: str) -> None:
         click.echo(f"Failed to register agent key: {e}")
 
 
-@main.command()  # type: ignore[misc]
+@main.command()
 def unregister() -> None:
     """Unregister the agent and remove the agent key."""
     agent_key = config.get_agent_key()
@@ -176,7 +176,7 @@ def unregister() -> None:
         click.echo(f"Failed to unregister agent: {e}")
 
 
-@main.command()  # type: ignore[misc]
+@main.command()
 def whoami() -> None:
     """Display information about the current agent."""
     agent_key = config.get_agent_key()

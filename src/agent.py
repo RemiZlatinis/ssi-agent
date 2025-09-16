@@ -13,7 +13,7 @@ import websockets
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
-from .config import get_agent_key
+from . import config
 from .constants import LOG_DIR
 from .models import (
     AgentHelloEvent,
@@ -32,7 +32,7 @@ PING_INTERVAL_SECONDS = 10
 WEBSOCKET_URI = "ws://192.168.1.20:8000/ws/agent/42fa03fd-a760-4bbc-800b-64061230c515/"
 
 
-class LogHandler(FileSystemEventHandler):  # type: ignore[misc]
+class LogHandler(FileSystemEventHandler):  # type: ignore
     def __init__(
         self,
         websocket: Any,
@@ -40,7 +40,7 @@ class LogHandler(FileSystemEventHandler):  # type: ignore[misc]
         agent_key: str,
     ):
         super().__init__()
-        self.file_positions: dict[str, int] = {}  # Stores last read positions
+        self.file_positions: dict[bytes | str, int] = {}  # Stores last read positions
         self.websocket = websocket
         self.loop = loop
         self.agent_key = agent_key
@@ -90,7 +90,7 @@ class LogHandler(FileSystemEventHandler):  # type: ignore[misc]
                             self.send_status_update(status_event), self.loop
                         )
         except Exception as e:
-            print(f"Error reading {file_path}: {e}")
+            print(f"Error reading {str(file_path)}: {e}")
 
     async def send_status_update(self, status_event: StatusUpdateEvent) -> None:
         try:
@@ -218,7 +218,7 @@ async def run_daemon() -> None:
         return
 
     # Get agent key
-    agent_key = get_agent_key()
+    agent_key = config.get_agent_key()
     if not agent_key:
         print("No agent key found. Please register the agent first.")
         return

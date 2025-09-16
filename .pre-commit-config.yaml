@@ -20,5 +20,5 @@ repos:
     hooks:
     -   id: mypy
         args: [--show-error-codes]
-        additional_dependencies: [pydantic, types-requests]
+        additional_dependencies: [pydantic, types-requests, types-click]
         files: ^src/

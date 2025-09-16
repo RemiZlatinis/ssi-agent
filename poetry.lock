@@ -830,6 +830,18 @@ files = [
 ]
 
 [[package]]
+name = "types-click"
+version = "7.1.8"
+description = "Typing stubs for click"
+optional = false
+python-versions = "*"
+groups = ["dev"]
+files = [
+    {file = "types-click-7.1.8.tar.gz", hash = "sha256:b6604968be6401dc516311ca50708a0a28baa7a0cb840efd7412f0dbbff4e092"},
+    {file = "types_click-7.1.8-py3-none-any.whl", hash = "sha256:8cb030a669e2e927461be9827375f83c16b8178c365852c060a34e24871e7e81"},
+]
+
+[[package]]
 name = "types-requests"
 version = "2.32.4.20250913"
 description = "Typing stubs for requests"
@@ -1035,4 +1047,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12"
-content-hash = "f3e9ba1224deb60f4befe9bb03aaf1b62c5ffa5dd92ec207c2da05bb3bb72721"
+content-hash = "3705569bcdea6eebf8348c3ae09981eb5d8ff645ed65d2d8d915ee9c28b2050b"
