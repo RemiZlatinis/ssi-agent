@@ -1,0 +1,18 @@
+[Unit]
+Description=Service Status Indicator Agent
+After=network.target
+
+[Service]
+Type=simple
+User=service-status-indicator
+Group=service-status-indicator
+ExecStart=/opt/service-status-indicator/venv/bin/service-status-indicator-daemon
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+Environment=PATH=/opt/service-status-indicator/venv/bin:/usr/bin:/bin
+WorkingDirectory=/opt/service-status-indicator
+
+[Install]
+WantedBy=multi-user.target
