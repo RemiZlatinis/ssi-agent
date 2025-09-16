@@ -127,10 +127,12 @@ def run(service_id: str) -> None:
     unit = PREFIX + service_id
     command = ["sudo", "systemctl", "start", f"{unit}.service"]
     try:
-        subprocess.run(command, check=True)
-        print(f"Service {service_id} started successfully.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error starting service {service_id}: {e}")
+        subprocess.Popen(command)
+    except FileNotFoundError:
+        print(f"Error: Command {' '.join(command)} not found.")
+        exit(1)
+    except Exception as e:
+        print(f"Error invoking service {service_id} start: {e}")
         exit(1)
 
 
