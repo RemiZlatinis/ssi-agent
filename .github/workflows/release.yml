@@ -17,6 +17,8 @@ jobs:
   build-deb:
     name: Build DEB Package
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -99,7 +101,9 @@ jobs:
 
   build-rpm:
     name: Build RPM Package
-    runs-on: fedora-latest
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
