@@ -1,0 +1,38 @@
+#!/bin/bash
+# Post-installation script for service-status-indicator-agent
+
+set -e
+
+# Create system user if it doesn't exist
+if ! id -u service-status-indicator >/dev/null 2>&1; then
+    useradd --system --shell /bin/false --home-dir /opt/service-status-indicator --create-home service-status-indicator
+fi
+
+# Create log directory
+mkdir -p /var/log/service-status-indicator
+chown service-status-indicator:service-status-indicator /var/log/service-status-indicator
+chmod 755 /var/log/service-status-indicator
+
+# Create config directory
+mkdir -p /etc/service-status-indicator
+chown service-status-indicator:service-status-indicator /etc/service-status-indicator
+chmod 755 /etc/service-status-indicator
+
+# Reload systemd daemon
+systemctl daemon-reload
+
+# Enable and start service (only if this is an initial install, not upgrade)
+if [ "$1" = "configure" ] && [ -z "$2" ]; then
+    systemctl enable service-status-indicator-agent
+    systemctl start service-status-indicator-agent
+fi
+
+echo "Service Status Indicator Agent installed successfully!"
+echo ""
+echo "Next steps:"
+echo "1. Register the agent: service-status-indicator register <agent-key>"
+echo "2. Check service status: systemctl status service-status-indicator-agent"
+echo "3. View logs: journalctl -u service-status-indicator-agent -f"
+echo ""
+echo "Configuration file: /etc/service-status-indicator/config.json"
+echo "Log directory: /var/log/service-status-indicator"

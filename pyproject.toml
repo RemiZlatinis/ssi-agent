@@ -1,19 +1,30 @@
 [project]
 name = "service-status-indicator-agent"
 version = "0.1.0"
-description = "The agent backend of the Service Status Indicator"
+description = "The agent backend for the Service Status Indicator system"
 authors = [
-    {name = "RemiZlatinis",email = "remizlatinis@gmail.com"}
+    {name = "Remi Zlatinis", email = "remizlatinis@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.9"
 dependencies = [
-    "websockets (>=15.0.1,<16.0.0)",
-    "watchdog (>=6.0.0,<7.0.0)",
-    "click (>=8.2.1,<9.0.0)",
-    "pydantic (>=2.0.0,<3.0.0)",
-    "requests (>=2.32.3,<3.0.0)",
+    "websockets>=15.0.1,<16.0.0",
+    "watchdog>=6.0.0,<7.0.0",
+    "click>=8.2.1,<9.0.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "requests>=2.32.3,<3.0.0",
 ]
+
+[project.scripts]
+service-status-indicator = "src.cli:main"
+service-status-indicator-daemon = "src.watcher:main"
+
+[project.urls]
+Homepage = "https://github.com/RemiZlatinis/ssi-agent"
+Repository = "https://github.com/RemiZlatinis/ssi-agent.git"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.poetry]
 package-mode = false

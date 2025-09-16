@@ -1,0 +1,56 @@
+#!/bin/bash
+# Post-removal script for service-status-indicator-agent
+
+set -e
+
+# Only run cleanup on complete removal (not upgrade)
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    echo "Cleaning up service-status-indicator-agent..."
+
+    # Ask about removing data directories
+    if [ -d "/var/log/service-status-indicator" ]; then
+        echo ""
+        echo "Remove log directory (/var/log/service-status-indicator) containing service logs?"
+        echo -n "[y/N]: "
+        read -r response
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            rm -rf /var/log/service-status-indicator
+            echo "Log directory removed."
+        else
+            echo "Log directory kept at /var/log/service-status-indicator"
+        fi
+    fi
+
+    # Ask about removing config directory
+    if [ -d "/etc/service-status-indicator" ]; then
+        echo ""
+        echo "Remove configuration directory (/etc/service-status-indicator)?"
+        echo -n "[y/N]: "
+        read -r response
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            rm -rf /etc/service-status-indicator
+            echo "Configuration directory removed."
+        else
+            echo "Configuration directory kept at /etc/service-status-indicator"
+        fi
+    fi
+
+    # Remove system user if no other files owned by it
+    if id -u service-status-indicator >/dev/null 2>&1; then
+        USER_FILES=$(find / -user service-status-indicator 2>/dev/null | wc -l)
+        if [ "$USER_FILES" -le 1 ]; then
+            userdel service-status-indicator
+            echo "System user 'service-status-indicator' removed."
+        else
+            echo "Keeping system user 'service-status-indicator' (other files still owned by it)."
+        fi
+    fi
+
+    # Remove application directory
+    if [ -d "/opt/service-status-indicator" ]; then
+        rm -rf /opt/service-status-indicator
+        echo "Application directory removed."
+    fi
+
+    echo "Cleanup completed."
+fi
