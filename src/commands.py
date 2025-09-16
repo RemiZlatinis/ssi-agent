@@ -25,7 +25,8 @@ def _execute(command: str) -> str:
 def get_enabled_services() -> list[str]:
     """Returns a list of enabled services."""
     command = (
-        'systemctl list-unit-files "ssi_*.timer" --state=enabled --no-legend --no-pager '
+        'systemctl list-unit-files "ssi_*.timer"'
+        " --state=enabled --no-legend --no-pager "
         "| awk '{print $1}'"
     )
     output = _execute(command)
@@ -33,7 +34,7 @@ def get_enabled_services() -> list[str]:
     return output.splitlines() if output else []
 
 
-def reload_daemon():
+def reload_daemon() -> None:
     """Reloads the systemd daemon."""
     _execute("sudo systemctl daemon-reload")
 
@@ -44,7 +45,7 @@ def is_enabled(service_id: str) -> bool:
     try:
         result = subprocess.run(command, check=True, capture_output=True, text=True)
         return result.stdout.strip() == "enabled"
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         return False
         # if e.returncode == 4:
         #     print(f"Service {service_id} is not installed.")
@@ -54,7 +55,7 @@ def is_enabled(service_id: str) -> bool:
 
 def install_script(service_id: str, script: Path) -> None:
     """Installs a service script to the scripts directory."""
-    target_script = SCRIPTS_DIR / f"{service_id.replace("_", "-")}.bash"
+    target_script = SCRIPTS_DIR / f"{service_id.replace('_', '-')}.bash"
 
     # Ensure the scripts directory exists
     subprocess.run(["sudo", "mkdir", "-p", str(SCRIPTS_DIR)], check=True)
@@ -72,7 +73,7 @@ def install_script(service_id: str, script: Path) -> None:
 
 def remove_script(service_id: str) -> None:
     """Removes a service script from the scripts directory."""
-    target_script = SCRIPTS_DIR / f"{service_id.replace("_", "-")}.bash"
+    target_script = SCRIPTS_DIR / f"{service_id.replace('_', '-')}.bash"
 
     if not target_script.exists():
         print(f"Script {target_script} does not exist.")
@@ -185,7 +186,10 @@ def exists(service_id: str) -> bool:
 
 
 def force_remove(service_id: str) -> None:
-    """Forcefully removes the service by disabling its timer and removing all related files."""
+    """
+    Forcefully removes the service by disabling its timer
+    and removing all related files.
+    """
     service_unit = SERVICES_DIR / f"{PREFIX + service_id}.service"
     timer_unit = SERVICES_DIR / f"{PREFIX + service_id}.timer"
     service_script_name = service_id.replace("_", "-")

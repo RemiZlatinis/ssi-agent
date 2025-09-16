@@ -3,20 +3,19 @@
 import click
 import requests
 
+from . import commands, config
 from .service import Service
-from . import commands
-from . import config
 
 
-@click.group()
-def main():
+@click.group()  # type: ignore[misc]
+def main() -> None:
     """A CLI tool for managing the Service Status Indicator Agent."""
     pass
 
 
-@main.command()
-@click.argument("service_script_path", type=click.Path(exists=True, dir_okay=False))
-def add(service_script_path: str):
+@main.command()  # type: ignore[misc]
+@click.argument("service_script_path", type=click.Path(exists=True, dir_okay=False))  # type: ignore[misc]
+def add(service_script_path: str) -> None:
     """Add a new service."""
     try:
         service = Service(service_script_path)
@@ -30,10 +29,10 @@ def add(service_script_path: str):
         click.echo(f"Failed to add service: {e}")
 
 
-@main.command()
-@click.argument("service_id")
-@click.option("-f", "--force", is_flag=True, help="Force removal of the service.")
-def remove(service_id: str, force: bool):
+@main.command()  # type: ignore[misc]
+@click.argument("service_id")  # type: ignore[misc]
+@click.option("-f", "--force", is_flag=True, help="Force removal of the service.")  # type: ignore[misc]
+def remove(service_id: str, force: bool) -> None:
     """Remove a service by its ID."""
     if force:
         try:
@@ -55,8 +54,8 @@ def remove(service_id: str, force: bool):
         click.echo(f"Failed to remove service: {e}")
 
 
-@main.command()
-def list():
+@main.command()  # type: ignore[misc]
+def list() -> None:
     """List all available services."""
     services = Service.get_services()
     if not services:
@@ -75,7 +74,8 @@ def list():
     # Header
     header = (
         f"{'ID':<{max_id_len}} | {'Name':<{max_name_len}} | "
-        f"{'Version':<{max_version_len}} | {'Schedule':<{max_schedule_len}} | {'Status':<{max_status_len}}"
+        f"{'Version':<{max_version_len}} | {'Schedule':<{max_schedule_len}}"
+        f" | {'Status':<{max_status_len}}"
     )
     click.echo(header)
     click.echo("-" * len(header))
@@ -85,15 +85,16 @@ def list():
         status = service.get_last_status() or "N/A"
         click.echo(
             f"{service.id:<{max_id_len}} | {service.name:<{max_name_len}} | "
-            f"{service.version:<{max_version_len}} | {service.schedule:<{max_schedule_len}} | "
+            f"{service.version:<{max_version_len}}"
+            f" | {service.schedule:<{max_schedule_len}} | "
             f"{str(status):<{max_status_len}}"
         )
 
 
-@main.command()
-@click.argument("service_id", required=False)
-@click.option("-d", "--details", is_flag=True, help="Display detailed status.")
-def status(service_id: str, details: bool):
+@main.command()  # type: ignore[misc]
+@click.argument("service_id", required=False)  # type: ignore[misc]
+@click.option("-d", "--details", is_flag=True, help="Display detailed status.")  # type: ignore[misc]
+def status(service_id: str | None, details: bool) -> None:
     """Display the status of a service or all services."""
     if service_id:
         service = Service.get_service(service_id)
@@ -116,9 +117,9 @@ def status(service_id: str, details: bool):
             click.echo(f"{service.name}: {service.get_last_status() or 'N/A'}")
 
 
-@main.command()
-@click.argument("service_id")
-def run(service_id: str):
+@main.command()  # type: ignore[misc]
+@click.argument("service_id")  # type: ignore[misc]
+def run(service_id: str) -> None:
     """Runs a service script by its service ID."""
     service = Service.get_service(service_id)
     if not service:
@@ -131,9 +132,9 @@ def run(service_id: str):
         click.echo(f"Failed to run service script: {e}")
 
 
-@main.command()
-@click.argument("uuid_agent_key")
-def register(uuid_agent_key: str):
+@main.command()  # type: ignore[misc]
+@click.argument("uuid_agent_key")  # type: ignore[misc]
+def register(uuid_agent_key: str) -> None:
     """Register the agent with an agent key."""
     try:
         response = requests.post(
@@ -152,8 +153,8 @@ def register(uuid_agent_key: str):
         click.echo(f"Failed to register agent key: {e}")
 
 
-@main.command()
-def unregister():
+@main.command()  # type: ignore[misc]
+def unregister() -> None:
     """Unregister the agent and remove the agent key."""
     agent_key = config.get_agent_key()
     if not agent_key:
@@ -176,8 +177,8 @@ def unregister():
         click.echo(f"Failed to unregister agent: {e}")
 
 
-@main.command()
-def whoami():
+@main.command()  # type: ignore[misc]
+def whoami() -> None:
     """Display information about the current agent."""
     agent_key = config.get_agent_key()
     if not agent_key:

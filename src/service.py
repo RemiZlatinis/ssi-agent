@@ -1,26 +1,23 @@
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, TypedDict
-import re
 
-from .constants import PREFIX, SERVICES_DIR, SCRIPTS_DIR, LOG_DIR
+from . import commands
+from .constants import LOG_DIR, PREFIX, SCRIPTS_DIR, SERVICES_DIR
 from .models import Status
 from .parsers import parse_log_line
 from .validators import validate_schedule
-from . import commands
 
-ServiceDict = TypedDict(
-    "ServiceDict",
-    {
-        "name": str,
-        "description": str,
-        "version": str,
-        "schedule": str,
-        "script": Path,
-        "timeout": int,
-    },
-)
+
+class ServiceDict(TypedDict):
+    name: str
+    description: str
+    version: str
+    schedule: str
+    script: Path
+    timeout: int
 
 
 @dataclass
@@ -78,7 +75,7 @@ class Service:
         self.id = self.name.replace(" ", "_").lower()
 
     @classmethod
-    def _get_script_for_service(cls, service_id: str) -> Optional[Path]:
+    def _get_script_for_service(cls, service_id: str) -> Path | None:
         """
         Retrieves the script path from a service unit file.
 
@@ -94,7 +91,7 @@ class Service:
             return None
 
         try:
-            with open(service_unit, "r", encoding="utf-8") as f:
+            with open(service_unit, encoding="utf-8") as f:
                 content = f.read()
                 # ExecStart=/bin/bash -c 'some/path/to/script.bash'
                 script_match = re.search(
@@ -124,7 +121,7 @@ class Service:
             raise FileNotFoundError(f"Service script {script} does not exist.")
 
         try:
-            with open(script, "r", encoding="utf-8") as f:
+            with open(script, encoding="utf-8") as f:
                 content = f.read()
 
                 # Extract metadata from the script
@@ -204,7 +201,8 @@ class Service:
         """
         Enables the service.
 
-        This method installs the service script, creates the service and timer unit files,
+        This method installs the service script,
+        creates the service and timer unit files,
         and enables the service timer.
         """
         if self.is_enabled():
@@ -212,21 +210,22 @@ class Service:
             return
 
         # If the script in not installed, copy it to the scripts directory
-        script_target = SCRIPTS_DIR / f"{self.id.replace("_", "-")}.bash"
+        script_target = SCRIPTS_DIR / f"{self.id.replace('_', '-')}.bash"
         if not script_target.exists():
             commands.install_script(self.id, self.script)
         else:
             print(
-                f"Script {self.id.replace('_', '-')}.bash already exists in {SCRIPTS_DIR}. Skipping installation."
+                f"Script {self.id.replace('_', '-')}.bash already exists"
+                f" in {SCRIPTS_DIR}. Skipping installation."
             )
 
         # If service unit does not exists, create it
-        service_file = Path(SERVICES_DIR) / f"{PREFIX+self.id}.service"
+        service_file = Path(SERVICES_DIR) / f"{PREFIX + self.id}.service"
         if not service_file.exists():
             # Create service unit file
             content = ""
             service_template_path = Path(__file__).parent / "templates" / "base.service"
-            with open(service_template_path, "r", encoding="utf-8") as f:
+            with open(service_template_path, encoding="utf-8") as f:
                 template_content = f.read()
                 content = template_content.format(
                     id=self.id,
@@ -238,7 +237,7 @@ class Service:
                 raise ValueError("Failed to create service unit file content")
 
             # Write service unit file
-            service_unit = Path(f"{PREFIX+self.id}.service")
+            service_unit = Path(f"{PREFIX + self.id}.service")
             with open(service_unit, "w", encoding="utf-8") as file:
                 file.write(content)
 
@@ -246,16 +245,17 @@ class Service:
             commands.install_unit_file(service_unit)
         else:
             print(
-                f"Service unit file {service_file.name} already exists. Skipping creation."
+                f"Service unit file {service_file.name} "
+                f"already exists. Skipping creation."
             )
 
         # If timer unit does not exists, create it
-        timer_file = Path(SERVICES_DIR) / f"{PREFIX+self.id}.timer"
+        timer_file = Path(SERVICES_DIR) / f"{PREFIX + self.id}.timer"
         if not timer_file.exists():
             # Create timer unit file
             content = ""
             timer_template_path = Path(__file__).parent / "templates" / "base.timer"
-            with open(timer_template_path, "r", encoding="utf-8") as f:
+            with open(timer_template_path, encoding="utf-8") as f:
                 template_content = f.read()
                 content = template_content.format(
                     description=self.description,
@@ -265,7 +265,7 @@ class Service:
                 raise ValueError("Failed to create timer unit file content")
 
             # Write timer unit file
-            timer_unit = Path(f"{PREFIX+self.id}.timer")
+            timer_unit = Path(f"{PREFIX + self.id}.timer")
             with open(timer_unit, "w", encoding="utf-8") as file:
                 file.write(content)
 
@@ -293,8 +293,8 @@ class Service:
 
         # Remove its units
         units = [
-            Path(SERVICES_DIR) / f"{PREFIX+self.id}.service",
-            Path(SERVICES_DIR) / f"{PREFIX+self.id}.timer",
+            Path(SERVICES_DIR) / f"{PREFIX + self.id}.service",
+            Path(SERVICES_DIR) / f"{PREFIX + self.id}.timer",
         ]
         for unit in units:
             commands.remove_unit(unit)
@@ -319,7 +319,7 @@ class Service:
             print(f"No logs found for service {self.name}.")
             return None
         try:
-            with open(service_logs, "r", encoding="utf-8") as f:
+            with open(service_logs, encoding="utf-8") as f:
                 lines = f.readlines()
                 if not lines:
                     return None
@@ -337,7 +337,7 @@ class Service:
             print(f"No logs found for service {self.name}.")
             return None, None, None
         try:
-            with open(service_logs, "r", encoding="utf-8") as f:
+            with open(service_logs, encoding="utf-8") as f:
                 lines = f.readlines()
                 if not lines:
                     return None, None, None

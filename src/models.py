@@ -1,9 +1,9 @@
 """Service Status Indicator Models"""
 
-from enum import Enum
-from pydantic import BaseModel
-from typing import List
 from datetime import datetime
+from enum import Enum
+
+from pydantic import BaseModel
 
 
 class Status(Enum):
@@ -44,7 +44,7 @@ class ServiceInfo(BaseModel):
 class AgentHelloEvent(BaseModel):
     event: str = "agent_hello"
     agent_key: str
-    services: List[ServiceInfo]
+    services: list[ServiceInfo]
 
 
 class ServiceAddedEvent(BaseModel):

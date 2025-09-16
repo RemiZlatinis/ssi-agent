@@ -1,6 +1,6 @@
 """Helper parser functions"""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from .models import Status
 
@@ -13,24 +13,27 @@ def parse_log_line(line: str) -> tuple[datetime | None, Status | None, str | Non
         line (str): The log line to parse.
 
     Returns:
-        tuple[str, str, str | None]: A tuple containing the timestamp, the status and optionally the message.
+        tuple[str, str, str | None]: A tuple containing the timestamp,
+        the status and optionally the message.
     """
     parts = line.split(",", 2)
 
     timestamp = parts[0].strip()
-    timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S") if timestamp else None
+    timestamp_dt: datetime | None = (
+        datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S") if timestamp else None
+    )
 
     # Convert to UTC
     local_timezone = datetime.now().astimezone().tzinfo
-    timestamp = (
-        timestamp.replace(tzinfo=local_timezone).astimezone(timezone.utc)
-        if timestamp
+    timestamp_dt = (
+        timestamp_dt.replace(tzinfo=local_timezone).astimezone(UTC)
+        if timestamp_dt
         else None
     )
 
-    status = parts[1].strip()
-    status = Status[status] if status in Status else None
+    status_str = parts[1].strip()
+    status: Status | None = Status[status_str] if status_str in Status else None
 
     message = parts[2].strip() if len(parts) > 2 else None
 
-    return timestamp, status, message
+    return timestamp_dt, status, message

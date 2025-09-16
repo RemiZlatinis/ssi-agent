@@ -13,13 +13,13 @@ URI_UNREGISTER = f"http://{BACKEND_HOST}/api/agents/unregister/"
 URI_WHOAMI = f"http://{BACKEND_HOST}/api/agents/me/"
 
 
-def save_agent_key(agent_key: str):
+def save_agent_key(agent_key: str) -> None:
     """Saves the agent key to the config file."""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     config = {}
     if CONFIG_FILE.exists():
         try:
-            with open(CONFIG_FILE, "r") as f:
+            with open(CONFIG_FILE) as f:
                 config = json.load(f)
         except json.JSONDecodeError:
             # Handle empty or corrupted file
@@ -37,21 +37,21 @@ def get_agent_key() -> str | None:
         return None
 
     try:
-        with open(CONFIG_FILE, "r") as f:
+        with open(CONFIG_FILE) as f:
             config = json.load(f)
     except (json.JSONDecodeError, FileNotFoundError):
         return None
 
-    return config.get("agent_key")
+    return config.get("agent_key")  # type: ignore[no-any-return]
 
 
-def remove_agent_key():
+def remove_agent_key() -> None:
     """Removes the agent key from the config file."""
     if not CONFIG_FILE.exists():
         return
 
     try:
-        with open(CONFIG_FILE, "r") as f:
+        with open(CONFIG_FILE) as f:
             config = json.load(f)
     except (json.JSONDecodeError, FileNotFoundError):
         return

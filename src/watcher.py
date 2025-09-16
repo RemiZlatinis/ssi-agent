@@ -3,27 +3,28 @@ Observes the services logs and sends the
 new lines from any modified log files to the WebSocket server in real-time.
 """
 
-import os
 import asyncio
-import websockets
+import os
 import threading
 import time
+from typing import Any
 
+import websockets
+from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 
+from .config import get_agent_key
 from .constants import LOG_DIR
-from .service import Service
-from .parsers import parse_log_line
 from .models import (
     AgentHelloEvent,
-    ServiceInfo,
     ServiceAddedEvent,
+    ServiceInfo,
     ServiceRemovedEvent,
-    StatusUpdateEvent,
     StatusUpdate,
+    StatusUpdateEvent,
 )
-from .config import get_agent_key
+from .parsers import parse_log_line
+from .service import Service
 
 WEBSOCKET_URI = "ws://localhost:5000"
 PING_INTERVAL_SECONDS = 10
@@ -31,15 +32,20 @@ PING_INTERVAL_SECONDS = 10
 WEBSOCKET_URI = "ws://192.168.1.20:8000/ws/agent/42fa03fd-a760-4bbc-800b-64061230c515/"
 
 
-class LogHandler(FileSystemEventHandler):
-    def __init__(self, websocket, loop, agent_key):
+class LogHandler(FileSystemEventHandler):  # type: ignore[misc]
+    def __init__(
+        self,
+        websocket: Any,
+        loop: asyncio.AbstractEventLoop,
+        agent_key: str,
+    ):
         super().__init__()
-        self.file_positions = {}  # Stores last read positions
+        self.file_positions: dict[str, int] = {}  # Stores last read positions
         self.websocket = websocket
         self.loop = loop
         self.agent_key = agent_key
 
-    def on_modified(self, event):
+    def on_modified(self, event: FileSystemEvent) -> None:
         if event.is_directory:
             return  # Ignore directory changes
 
@@ -52,7 +58,7 @@ class LogHandler(FileSystemEventHandler):
             if file_path not in self.file_positions:
                 self.file_positions[file_path] = 0
 
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 f.seek(self.file_positions[file_path])  # Move to last read position
                 new_lines = f.readlines()
                 self.file_positions[file_path] = f.tell()  # Update position
@@ -86,14 +92,14 @@ class LogHandler(FileSystemEventHandler):
         except Exception as e:
             print(f"Error reading {file_path}: {e}")
 
-    async def send_status_update(self, status_event):
+    async def send_status_update(self, status_event: StatusUpdateEvent) -> None:
         try:
             await self.websocket.send(status_event.model_dump_json())
         except Exception as e:
             print(f"Error sending status update to WebSocket server: {e}")
 
 
-async def connect_with_retry():
+async def connect_with_retry() -> Any:
     """Establish WebSocket connection with retry logic"""
     retry_delay = 5
     max_retries = 3  # Number of quick retries before increasing delay
@@ -125,7 +131,7 @@ async def connect_with_retry():
             await asyncio.sleep(retry_delay)
 
 
-async def send_agent_hello(websocket, agent_key):
+async def send_agent_hello(websocket: Any, agent_key: str) -> list[ServiceInfo] | None:
     """
     Send the initial agent_hello event with all current services.
     Returns the list of services if successful, None otherwise.
@@ -154,7 +160,12 @@ async def send_agent_hello(websocket, agent_key):
         return None
 
 
-def watch_service_changes(websocket, loop, agent_key, initial_services=None):
+def watch_service_changes(
+    websocket: Any,
+    loop: asyncio.AbstractEventLoop,
+    agent_key: str,
+    initial_services: list[ServiceInfo] | None,
+) -> None:
     """Monitor service changes and send appropriate events."""
     if initial_services is None:
         known_services = set()
@@ -201,7 +212,7 @@ def watch_service_changes(websocket, loop, agent_key, initial_services=None):
             time.sleep(scan_interval)
 
 
-async def run_daemon():
+async def run_daemon() -> None:
     if not os.path.exists(LOG_DIR):
         print(f"Log directory {LOG_DIR} does not exist.")
         return
@@ -274,7 +285,7 @@ async def run_daemon():
             break
 
 
-def main():
+def main() -> int:
     """Main entry point"""
     try:
         asyncio.run(run_daemon())
