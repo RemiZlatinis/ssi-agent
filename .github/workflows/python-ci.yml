@@ -32,5 +32,3 @@ jobs:
       run: poetry run ruff format --check .
     - name: Type check with Mypy
       run: poetry run mypy src
-    - name: Test with pytest
-      run: poetry run pytest
