@@ -74,6 +74,7 @@ jobs:
         run: |
           VERSION=${{ github.event.release.tag_name || github.event.inputs.version || 'dev' }}
           VERSION=${VERSION#v}  # Remove 'v' prefix if present
+          WHEEL_PATH=$(ls dist/*.whl)
 
           fpm -s python -t deb \
               --name ${PACKAGE_NAME} \
@@ -98,7 +99,7 @@ jobs:
               --after-install scripts/postinst \
               --before-remove scripts/prerm \
               --after-remove scripts/postrm \
-              .
+              "$WHEEL_PATH"
 
       - name: Upload DEB package
         uses: actions/upload-artifact@v4
