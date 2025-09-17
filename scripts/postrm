@@ -8,47 +8,47 @@ if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
     echo "Cleaning up ssi-agent..."
 
     # Ask about removing data directories
-    if [ -d "/var/log/service-status-indicator" ]; then
+    if [ -d "/var/log/ssi-agent" ]; then
         echo ""
-        echo "Remove log directory (/var/log/service-status-indicator) containing service logs?"
+        echo "Remove log directory (/var/log/ssi-agent) containing service logs?"
         echo -n "[y/N]: "
         read -r response
         if [[ "$response" =~ ^[Yy]$ ]]; then
-            rm -rf /var/log/service-status-indicator
+            rm -rf /var/log/ssi-agent
             echo "Log directory removed."
         else
-            echo "Log directory kept at /var/log/service-status-indicator"
+            echo "Log directory kept at /var/log/ssi-agent"
         fi
     fi
 
     # Ask about removing config directory
-    if [ -d "/etc/service-status-indicator" ]; then
+    if [ -d "/etc/ssi-agent" ]; then
         echo ""
-        echo "Remove configuration directory (/etc/service-status-indicator)?"
+        echo "Remove configuration directory (/etc/ssi-agent)?"
         echo -n "[y/N]: "
         read -r response
         if [[ "$response" =~ ^[Yy]$ ]]; then
-            rm -rf /etc/service-status-indicator
+            rm -rf /etc/ssi-agent
             echo "Configuration directory removed."
         else
-            echo "Configuration directory kept at /etc/service-status-indicator"
+            echo "Configuration directory kept at /etc/ssi-agent"
         fi
     fi
 
     # Remove system user if no other files owned by it
-    if id -u service-status-indicator >/dev/null 2>&1; then
-        USER_FILES=$(find / -user service-status-indicator 2>/dev/null | wc -l)
+    if id -u ssi-agent >/dev/null 2>&1; then
+        USER_FILES=$(find / -user ssi-agent 2>/dev/null | wc -l)
         if [ "$USER_FILES" -le 1 ]; then
-            userdel service-status-indicator
-            echo "System user 'service-status-indicator' removed."
+            userdel ssi-agent
+            echo "System user 'ssi-agent' removed."
         else
-            echo "Keeping system user 'service-status-indicator' (other files still owned by it)."
+            echo "Keeping system user 'ssi-agent' (other files still owned by it)."
         fi
     fi
 
     # Remove application directory
-    if [ -d "/opt/service-status-indicator" ]; then
-        rm -rf /opt/service-status-indicator
+    if [ -d "/opt/ssi-agent" ]; then
+        rm -rf /opt/ssi-agent
         echo "Application directory removed."
     fi
 

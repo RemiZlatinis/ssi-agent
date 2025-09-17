@@ -8,9 +8,9 @@ ExecStart=/bin/bash -c '{script}'
 TimeoutSec={timeout}
 RemainAfterExit=no
 Restart=no
-StandardOutput=append:/var/log/service-status-indicator/{id}.log
-StandardError=append:/var/log/service-status-indicator/{id}.log
-LogsDirectory=service-status-indicator
+StandardOutput=append:/var/log/ssi-agent/{id}.log
+StandardError=append:/var/log/ssi-agent/{id}.log
+LogsDirectory=ssi-agent
 LogsDirectoryMode=0755
 
 [Install]

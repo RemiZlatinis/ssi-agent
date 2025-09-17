@@ -13,10 +13,10 @@ NC='\033[0m' # No Color
 
 # Configuration
 SERVICE_NAME="ssi-agent"
-SERVICE_USER="service-status-indicator"
-SERVICE_SCRIPTS_DIR="/opt/service-status-indicator"
-CONFIG_DIR="/etc/service-status-indicator"
-LOG_DIR="/var/log/service-status-indicator"
+SERVICE_USER="ssi-agent"
+SERVICE_SCRIPTS_DIR="/opt/ssi-agent"
+CONFIG_DIR="/etc/ssi-agent"
+LOG_DIR="/var/log/ssi-agent"
 
 # Functions
 print_status() {
@@ -163,7 +163,7 @@ install_service_file() {
     # Update paths in service file if needed
     sed -i "s|User=.*|User=$SERVICE_USER|" "/etc/systemd/system/$SERVICE_NAME.service"
     sed -i "s|Group=.*|Group=$SERVICE_USER|" "/etc/systemd/system/$SERVICE_NAME.service"
-    sed -i "s|ExecStart=.*|ExecStart=$SERVICE_SCRIPTS_DIR/venv/bin/service-status-indicator-daemon|" "/etc/systemd/system/$SERVICE_NAME.service"
+    sed -i "s|ExecStart=.*|ExecStart=$SERVICE_SCRIPTS_DIR/venv/bin/ssi-agent-daemon|" "/etc/systemd/system/$SERVICE_NAME.service"
 }
 
 setup_service() {
@@ -197,7 +197,7 @@ cleanup() {
     print_status "Installation completed successfully!"
     echo ""
     echo "Next steps:"
-    echo "1. Register the agent: service-status-indicator register <agent-key>"
+    echo "1. Register the agent: ssi-agent register <agent-key>"
     echo "2. Check service status: systemctl status $SERVICE_NAME"
     echo "3. View logs: journalctl -u $SERVICE_NAME -f"
     echo ""
