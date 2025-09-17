@@ -11,7 +11,7 @@ on:
 
 env:
   PACKAGE_NAME: service-status-indicator-agent
-  PACKAGE_DESCRIPTION: "Service Status Indicator Agent - monitors service logs and sends updates via WebSocket"
+  PACKAGE_DESCRIPTION: "The agent of the Service Status Indicator monitoring framework"
 
 jobs:
   build-deb:

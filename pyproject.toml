@@ -1,7 +1,7 @@
 [project]
 name = "service-status-indicator-agent"
 version = "0.1.0"
-description = "The agent backend for the Service Status Indicator system"
+description = "The agent of the Service Status Indicator monitoring framework"
 authors = [
     {name = "Remi Zlatinis", email = "remizlatinis@gmail.com"}
 ]
