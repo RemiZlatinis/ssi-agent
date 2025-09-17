@@ -48,9 +48,9 @@ jobs:
           poetry config virtualenvs.create false --local   # install into runner python
           poetry install --no-interaction --no-ansi
 
-      - name: Build wheel and sdist
+      - name: Poetry build
         run: |
-          poetry build -f wheel -f sdist -o dist/
+          poetry build
 
       - name: Create systemd service file
         run: |
