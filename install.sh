@@ -199,7 +199,7 @@ cleanup() {
     print_status "Installation completed successfully!"
     echo ""
     echo "Next steps:"
-    echo "1. Register the agent: ssi-agent register <agent-key>"
+    echo "1. Register the agent: ssi register <agent-key>"
     echo "2. Check service status: systemctl status $SERVICE_NAME"
     echo "3. View logs: journalctl -u $SERVICE_NAME -f"
     echo ""
