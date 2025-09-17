@@ -17,8 +17,6 @@ jobs:
   build-deb:
     name: Build DEB Package
     runs-on: ubuntu-latest
-    container:
-      image: ubuntu:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,10 +26,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install build dependencies
+      - name: Install Debian packaging tools
         run: |
-          apt-get update
-          apt-get install -y ruby ruby-dev build-essential
+          sudo apt-get update
+          sudo apt-get install -y build-essential dpkg-dev debhelper devscripts
+
+      - name: Install fmp dependencies
+        run: |
+          apt-get install -y ruby ruby-dev
 
       - name: Install fpm
         run: gem install fpm
@@ -41,13 +43,14 @@ jobs:
         with:
           version: latest
 
-      - name: Install Python dependencies
+      - name: Install Python deps (dev)
         run: |
-          poetry install
+          poetry config virtualenvs.create false --local   # install into runner python
+          poetry install --no-interaction --no-ansi
 
-      - name: Create setup.py
+      - name: Build wheel and sdist
         run: |
-          poetry build
+          poetry build -f wheel -f sdist
 
       - name: Create systemd service file
         run: |
@@ -112,77 +115,77 @@ jobs:
   #     - name: Checkout code
   #       uses: actions/checkout@v4
 
-#     - name: Set up Python 3.12
-#       uses: actions/setup-python@v5
-#       with:
-#         python-version: "3.12"
+  #     - name: Set up Python 3.12
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.12"
 
-#     - name: Install build dependencies
-#       run: |
-#         dnf install -y ruby ruby-devel gcc make rpm-build
+  #     - name: Install build dependencies
+  #       run: |
+  #         dnf install -y ruby ruby-devel gcc make rpm-build
 
-#     - name: Install fpm
-#       run: gem install fpm
+  #     - name: Install fpm
+  #       run: gem install fpm
 
-#     - name: Install Poetry
-#       uses: snok/install-poetry@v1
-#       with:
-#         version: latest
+  #     - name: Install Poetry
+  #       uses: snok/install-poetry@v1
+  #       with:
+  #         version: latest
 
-#     - name: Install Python dependencies
-#       run: |
-#         poetry install
+  #     - name: Install Python dependencies
+  #       run: |
+  #         poetry install
 
-#     - name: Create setup.py
-#       run: |
-#         poetry build
+  #     - name: Create setup.py
+  #       run: |
+  #         poetry build
 
-#     - name: Create systemd service file
-#       run: |
-#         mkdir -p systemd
-#         cp src/templates/agent.service systemd/${PACKAGE_NAME}.service
-#         sed -i 's|ExecStart=/opt/ssi-agent/venv/bin/ssi-agent-daemon|ExecStart=/usr/bin/ssi-agent-daemon|' systemd/${PACKAGE_NAME}.service
+  #     - name: Create systemd service file
+  #       run: |
+  #         mkdir -p systemd
+  #         cp src/templates/agent.service systemd/${PACKAGE_NAME}.service
+  #         sed -i 's|ExecStart=/opt/ssi-agent/venv/bin/ssi-agent-daemon|ExecStart=/usr/bin/ssi-agent-daemon|' systemd/${PACKAGE_NAME}.service
 
-#     - name: Create default config
-#       run: |
-#         mkdir -p config
-#         cat > config/config.json << EOF
-          #         {
+  #     - name: Create default config
+  #       run: |
+  #         mkdir -p config
+  #         cat > config/config.json << EOF
+  #         {
   #             "websocket_uri": "ws://localhost:5000",
-#             "log_level": "INFO",
-#             "log_dir": "/var/log/ssi-agent",
-#             "config_dir": "/etc/ssi-agent"
-          #         }
+  #             "log_level": "INFO",
+  #             "log_dir": "/var/log/ssi-agent",
+  #             "config_dir": "/etc/ssi-agent"
+  #         }
   #         EOF
 
-#     - name: Build RPM package with fpm
-#       run: |
-#         VERSION=${{ github.event.release.tag_name || github.event.inputs.version || 'dev' }}
-#         VERSION=${VERSION#v}  # Remove 'v' prefix if present
+  #     - name: Build RPM package with fpm
+  #       run: |
+  #         VERSION=${{ github.event.release.tag_name || github.event.inputs.version || 'dev' }}
+  #         VERSION=${VERSION#v}  # Remove 'v' prefix if present
 
-#         fpm -s python -t rpm \
-#             --name ${PACKAGE_NAME} \
-#             --version ${VERSION} \
-#             --iteration ${GITHUB_RUN_NUMBER} \
-#             --description "${PACKAGE_DESCRIPTION}" \
-#             --maintainer "Remi Zlatinis <remizlatinis@gmail.com>" \
-#             --url "https://github.com/${GITHUB_REPOSITORY}" \
-#             --license "MIT" \
-#             --python-bin python3 \
-#             --python-pip pip3 \
-#             --python-package-name-prefix python3 \
-#             --depends python3 \
-#             --depends systemd \
-#             --rpm-systemd systemd/${PACKAGE_NAME}.service \
-#             --config-files /etc/${PACKAGE_NAME}/config.json \
-#             --directories /var/log/${PACKAGE_NAME} \
-#             --rpm-auto-start \
-#             --rpm-auto-enable \
-#             --before-install scripts/preinst \
-#             --after-install scripts/postinst \
-#             --before-remove scripts/prerm \
-#             --after-remove scripts/postrm \
-#             .
+  #         fpm -s python -t rpm \
+  #             --name ${PACKAGE_NAME} \
+  #             --version ${VERSION} \
+  #             --iteration ${GITHUB_RUN_NUMBER} \
+  #             --description "${PACKAGE_DESCRIPTION}" \
+  #             --maintainer "Remi Zlatinis <remizlatinis@gmail.com>" \
+  #             --url "https://github.com/${GITHUB_REPOSITORY}" \
+  #             --license "MIT" \
+  #             --python-bin python3 \
+  #             --python-pip pip3 \
+  #             --python-package-name-prefix python3 \
+  #             --depends python3 \
+  #             --depends systemd \
+  #             --rpm-systemd systemd/${PACKAGE_NAME}.service \
+  #             --config-files /etc/${PACKAGE_NAME}/config.json \
+  #             --directories /var/log/${PACKAGE_NAME} \
+  #             --rpm-auto-start \
+  #             --rpm-auto-enable \
+  #             --before-install scripts/preinst \
+  #             --after-install scripts/postinst \
+  #             --before-remove scripts/prerm \
+  #             --after-remove scripts/postrm \
+  #             .
 
   #     - name: Upload RPM package
   #       uses: actions/upload-artifact@v4
