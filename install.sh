@@ -142,6 +142,11 @@ create_virtual_environment() {
     chown -R "$SERVICE_USER:$SERVICE_USER" "$SERVICE_SCRIPTS_DIR/venv"
 }
 
+create_symlink() {
+    print_status "Creating symlink for ssi-agent CLI..."
+    ln -sf "$SERVICE_SCRIPTS_DIR/venv/bin/ssi-agent" "/usr/local/bin/ssi"
+}
+
 install_service_file() {
     print_status "Installing systemd service file..."
 
@@ -227,6 +232,14 @@ uninstall_agent() {
         systemctl daemon-reload
     else
         print_status "Systemd service file not found, skipping"
+    fi
+
+    # Remove symlink
+    if [[ -L "/usr/local/bin/ssi" ]]; then
+        print_warning "Removing ssi-agent CLI symlink..."
+        rm -f "/usr/local/bin/ssi"
+    else
+        print_status "ssi-agent CLI symlink not found, skipping"
     fi
 
     # Remove virtual environment
@@ -327,6 +340,7 @@ main() {
         create_user
         create_directories
         create_virtual_environment
+        create_symlink
         install_service_file
         create_config
         setup_service
