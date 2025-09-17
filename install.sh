@@ -212,11 +212,15 @@ uninstall_agent() {
     if systemctl is-active --quiet "$SERVICE_NAME"; then
         print_status "Stopping service..."
         systemctl stop "$SERVICE_NAME"
+    else
+        print_status "Service is not running"
     fi
 
     if systemctl is-enabled --quiet "$SERVICE_NAME"; then
         print_status "Disabling service..."
         systemctl disable "$SERVICE_NAME"
+    else
+        print_status "Service is not enabled"
     fi
 
     # Remove systemd service file
@@ -224,24 +228,32 @@ uninstall_agent() {
         print_status "Removing systemd service file..."
         rm -f "/etc/systemd/system/$SERVICE_NAME.service"
         systemctl daemon-reload
+    else
+        print_status "Systemd service file not found, skipping"
     fi
 
     # Remove virtual environment
     if [[ -d "$SERVICE_SCRIPTS_DIR/venv" ]]; then
         print_warning "Removing virtual environment..."
         rm -rf "$SERVICE_SCRIPTS_DIR/venv"
+    else
+        print_status "Virtual environment not found, skipping"
     fi
 
     # Remove application directory
     if [[ -d "$SERVICE_SCRIPTS_DIR" ]]; then
         print_warning "Removing application directory..."
         rm -rf "$SERVICE_SCRIPTS_DIR"
+    else
+        print_status "Application directory not found, skipping"
     fi
 
     # Remove configuration directory
     if [[ -d "$CONFIG_DIR" ]]; then
         print_warning "Removing configuration directory..."
         rm -rf "$CONFIG_DIR"
+    else
+        print_status "Configuration directory not found, skipping"
     fi
 
     # Ask about log directory (contains user data)
@@ -255,18 +267,16 @@ uninstall_agent() {
         else
             print_status "Keeping log directory (you can remove it manually later)"
         fi
+    else
+        print_status "Log directory not found, skipping"
     fi
 
     # Remove system user (only if no other files owned by it)
     if id "$SERVICE_USER" &>/dev/null; then
-        # Check if user owns any other files
-        USER_FILES=$(find / -user "$SERVICE_USER" 2>/dev/null | wc -l)
-        if [[ $USER_FILES -le 1 ]]; then  # Only the user's home directory
-            print_status "Removing system user..."
-            userdel "$SERVICE_USER"
-        else
-            print_warning "Keeping system user (other files still owned by it)"
-        fi
+        print_status "Removing system user..."
+        userdel "$SERVICE_USER"
+    else
+        print_status "System user not found, skipping"
     fi
 
     print_status "Uninstallation completed!"
