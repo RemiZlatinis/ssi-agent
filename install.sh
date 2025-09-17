@@ -175,8 +175,11 @@ setup_service() {
     systemctl enable "$SERVICE_NAME"
     systemctl start "$SERVICE_NAME"
 
-    print_status "Service status:"
-    systemctl status "$SERVICE_NAME" --no-pager -l
+    if [ $? -eq 0 ]; then
+        print_status "Daemon started successfully."
+    else
+        print_error "Failed to start daemon. Check logs for details: journalctl -u $SERVICE_NAME"
+    fi
 }
 
 create_config() {
