@@ -50,7 +50,7 @@ jobs:
 
       - name: Build wheel and sdist
         run: |
-          poetry build -f wheel -f sdist
+          poetry build -f wheel -f sdist -o dist/
 
       - name: Create systemd service file
         run: |
