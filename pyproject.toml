@@ -18,7 +18,7 @@ dependencies = [
 
 [project.scripts]
 ssi-agent = "src.cli:main"
-ssi-agent-daemon = "src.watcher:main"
+ssi-agent-daemon = "src.agent:main"
 
 [project.urls]
 Homepage = "https://github.com/RemiZlatinis/ssi-agent"
