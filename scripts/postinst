@@ -1,5 +1,5 @@
 #!/bin/bash
-# Post-installation script for service-status-indicator-agent
+# Post-installation script for ssi-agent
 
 set -e
 
@@ -23,16 +23,16 @@ systemctl daemon-reload
 
 # Enable and start service (only if this is an initial install, not upgrade)
 if [ "$1" = "configure" ] && [ -z "$2" ]; then
-    systemctl enable service-status-indicator-agent
-    systemctl start service-status-indicator-agent
+    systemctl enable ssi-agent
+    systemctl start ssi-agent
 fi
 
 echo "Service Status Indicator Agent installed successfully!"
 echo ""
 echo "Next steps:"
 echo "1. Register the agent: service-status-indicator register <agent-key>"
-echo "2. Check service status: systemctl status service-status-indicator-agent"
-echo "3. View logs: journalctl -u service-status-indicator-agent -f"
+echo "2. Check service status: systemctl status ssi-agent"
+echo "3. View logs: journalctl -u ssi-agent -f"
 echo ""
 echo "Configuration file: /etc/service-status-indicator/config.json"
 echo "Log directory: /var/log/service-status-indicator"

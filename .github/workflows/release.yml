@@ -10,7 +10,7 @@ on:
         default: 'dev'
 
 env:
-  PACKAGE_NAME: service-status-indicator-agent
+  PACKAGE_NAME: ssi-agent
   PACKAGE_DESCRIPTION: "The agent of the Service Status Indicator monitoring framework"
 
 jobs:

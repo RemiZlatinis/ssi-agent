@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pre-installation script for service-status-indicator-agent
+# Pre-installation script for ssi-agent
 
 set -e
 

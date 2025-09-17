@@ -1,17 +1,17 @@
 #!/bin/bash
-# Pre-removal script for service-status-indicator-agent
+# Pre-removal script for ssi-agent
 
 set -e
 
 # Stop and disable service before removal
-if systemctl is-active --quiet service-status-indicator-agent; then
-    echo "Stopping service-status-indicator-agent..."
-    systemctl stop service-status-indicator-agent
+if systemctl is-active --quiet ssi-agent; then
+    echo "Stopping ssi-agent..."
+    systemctl stop ssi-agent
 fi
 
-if systemctl is-enabled --quiet service-status-indicator-agent; then
-    echo "Disabling service-status-indicator-agent..."
-    systemctl disable service-status-indicator-agent
+if systemctl is-enabled --quiet ssi-agent; then
+    echo "Disabling ssi-agent..."
+    systemctl disable ssi-agent
 fi
 
 # Reload systemd daemon

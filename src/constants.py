@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-APP_NAME = "service-status-indicator-agent"
+APP_NAME = "ssi-agent"
 PREFIX = "ssi_"  # Prefix for systemd services
 
 # Directories

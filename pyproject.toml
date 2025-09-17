@@ -1,5 +1,5 @@
 [project]
-name = "service-status-indicator-agent"
+name = "ssi-agent"
 version = "0.1.0"
 description = "The agent of the Service Status Indicator monitoring framework"
 authors = [

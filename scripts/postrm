@@ -1,11 +1,11 @@
 #!/bin/bash
-# Post-removal script for service-status-indicator-agent
+# Post-removal script for ssi-agent
 
 set -e
 
 # Only run cleanup on complete removal (not upgrade)
 if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
-    echo "Cleaning up service-status-indicator-agent..."
+    echo "Cleaning up ssi-agent..."
 
     # Ask about removing data directories
     if [ -d "/var/log/service-status-indicator" ]; then

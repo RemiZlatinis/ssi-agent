@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-SERVICE_NAME="service-status-indicator-agent"
+SERVICE_NAME="ssi-agent"
 SERVICE_USER="service-status-indicator"
 SERVICE_SCRIPTS_DIR="/opt/service-status-indicator"
 CONFIG_DIR="/etc/service-status-indicator"
