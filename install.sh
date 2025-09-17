@@ -134,10 +134,7 @@ create_virtual_environment() {
 
     # Install the package and its dependencies
     pip install --upgrade pip
-    pip install websockets watchdog click pydantic requests
-
-    # Install the package itself (assuming it's available)
-    # pip install /path/to/package.whl or from PyPI when published
+    pip install .
 
     deactivate
 
