@@ -14,7 +14,7 @@ from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
 from . import config
-from .constants import LOG_DIR
+from .constants import LOG_DIR, PING_INTERVAL_SECONDS, WEBSOCKET_URI
 from .models import (
     AgentHelloEvent,
     ServiceAddedEvent,
@@ -25,11 +25,6 @@ from .models import (
 )
 from .parsers import parse_log_line
 from .service import Service
-
-WEBSOCKET_URI = "ws://localhost:5000"
-PING_INTERVAL_SECONDS = 10
-
-WEBSOCKET_URI = "ws://192.168.1.20:8000/ws/agent/42fa03fd-a760-4bbc-800b-64061230c515/"
 
 
 class LogHandler(FileSystemEventHandler):
@@ -105,10 +100,12 @@ async def connect_with_retry() -> Any:
     max_retries = 3  # Number of quick retries before increasing delay
     retry_count = 0
 
+    agent_uuid = config.get_agent_key()
+
     while True:
         try:
             websocket = await websockets.connect(
-                WEBSOCKET_URI,
+                f"{WEBSOCKET_URI}{agent_uuid}/",
                 ping_interval=20,
                 ping_timeout=60,
                 close_timeout=5,
