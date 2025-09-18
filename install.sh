@@ -18,6 +18,23 @@ SERVICE_SCRIPTS_DIR="/opt/ssi-agent"
 CONFIG_DIR="/etc/ssi-agent"
 LOG_DIR="/var/log/ssi-agent"
 
+# Determine admin group for permissions
+if [ -f /etc/redhat-release ] || [ -f /etc/arch-release ]; then
+    ADMIN_GROUP="wheel"
+else
+    # Default to sudo for Debian-based and others
+    ADMIN_GROUP="sudo"
+fi
+
+# Verify admin group exists, fallback if necessary
+if ! getent group "$ADMIN_GROUP" >/dev/null; then
+    if getent group "sudo" >/dev/null; then
+        ADMIN_GROUP="sudo"
+    elif getent group "wheel" >/dev/null; then
+        ADMIN_GROUP="wheel"
+    fi
+fi
+
 # Functions
 print_status() {
     echo -e "${GREEN}[INFO]${NC} $1"
@@ -93,6 +110,13 @@ check_system_requirements() {
         print_warning "Consider installing build-essential: apt install build-essential"
     fi
 
+    # Check for acl tools
+    if ! command -v setfacl &> /dev/null; then
+        print_error "setfacl is required but not found"
+        print_error "Please install it first (e.g., 'sudo apt install acl')"
+        exit 1
+    fi
+
     print_status "System requirements check passed ✓"
 }
 
@@ -120,7 +144,11 @@ create_directories() {
     chown "$SERVICE_USER:$SERVICE_USER" "$CONFIG_DIR"
     chmod 755 "$SERVICE_SCRIPTS_DIR"
     chmod 755 "$LOG_DIR"
-    chmod 755 "$CONFIG_DIR"
+    chmod 755 "$CONFIG_DIR" # Owner rwx, group rx, other rx
+
+    # Grant admin group write access to the config directory using ACLs
+    # This allows admin users to run 'ssi register' without 'sudo'
+    setfacl -m g:"$ADMIN_GROUP":rwx "$CONFIG_DIR"
 }
 
 create_virtual_environment() {
@@ -195,7 +223,11 @@ create_config() {
 EOF
 
     chown "$SERVICE_USER:$SERVICE_USER" "$CONFIG_DIR/config.json"
-    chmod 644 "$CONFIG_DIR/config.json"
+    chmod 644 "$CONFIG_DIR/config.json" # Owner rw, group r, other r
+
+    # Grant admin group write access to the config file using ACLs
+    # This allows admin users to run 'ssi register' without 'sudo'
+    setfacl -m g:"$ADMIN_GROUP":rw- "$CONFIG_DIR/config.json"
 }
 
 cleanup() {
