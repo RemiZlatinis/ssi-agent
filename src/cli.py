@@ -1,10 +1,18 @@
 """CLI tool for managing the Service Status Indicator Agent."""
 
+import itertools
+from time import sleep
+
 import click
 import requests
 
 from . import commands, config
-from .constants import URI_REGISTER, URI_UNREGISTER, URI_WHOAMI
+from .constants import (
+    URI_INITIATE_REGISTRATION,
+    URI_REGISTRATION_STATUS,
+    URI_UNREGISTER,
+    URI_WHOAMI,
+)
 from .service import Service
 
 
@@ -134,22 +142,74 @@ def run(service_id: str) -> None:
 
 
 @main.command()
-@click.argument("uuid_agent_key")
-def register(uuid_agent_key: str) -> None:
-    """Register the agent with an agent key."""
-    try:
-        response = requests.post(URI_REGISTER, json={"key": uuid_agent_key}, timeout=5)
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        response_message = response.json().get("message", "No message from server.")
+def register() -> None:
+    """
+    Register the agent.
 
-        config.save_agent_key(uuid_agent_key)
-        click.echo(response_message)
+    Flow:
+    1. Agent CLI request for a registration pair (6 digits code + UUID).
+    2. User enters the code to the front-end client.
+    3.
+
+    """
+    response = None
+    try:
+        # Check if is already registered
+        key = config.get_agent_key()
+        if key:
+            click.echo(
+                "Agent is already registered. [You can use"
+                " 'ssi unregister' command to unregister']"
+            )
+            return
+
+        response = requests.post(URI_INITIATE_REGISTRATION, timeout=5)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        data = response.json()
+
+        code = data.get("code")
+        click.echo(f"🔑 Registration code: {code[:3]}-{code[3:]}")
+
+        registration_id = data.get("id")
+        spinner = itertools.cycle("🕐🕑🕒🕓🕔🕕🕖🕗🕘🕙🕚🕛")
+        while True:
+            response = requests.get(
+                f"{URI_REGISTRATION_STATUS}{registration_id}/", timeout=5
+            )
+            response.raise_for_status()
+            data = response.json()
+            reg_status = data.get("status")
+
+            if reg_status == "completed":
+                # Clear the line and print final message
+                click.echo("\r" + " " * 20 + "\r", nl=False)
+                key = data.get("credentials").get("key")
+                if type(key) is str:
+                    config.save_agent_key(key)
+                click.echo("✅ Registration completed.")
+                break
+            elif reg_status == "expired":
+                click.echo("\r" + " " * 20 + "\r", nl=False)
+                click.echo("❌ Registration expired. Please try again.")
+                break
+            elif reg_status == "pending":
+                for _ in range(12):
+                    click.echo(
+                        f"\r{next(spinner)} Registration is pending...", nl=False
+                    )
+                    sleep(5 / 12)  # 5 seconds / 12 icons
     except requests.exceptions.RequestException as e:
-        click.echo(f"Failed to register agent key: {e}")
-        if e.response:
-            click.echo(f"Backend response: {e.response.text}")
+        # Note: Truthiness is implemented to be `False` if status code ≥ 400
+        if e.response is not None:
+            if e.response.status_code == 410:
+                click.echo("\r" + " " * 20 + "\r", nl=False)
+                click.echo("❌ Registration code expired. Please try again.")
+            elif e.response.status_code == 403:
+                click.echo("❌ Too many tries. Try later.")
+            else:
+                click.echo(f"Failed to register agent: {e.response.text}")
     except Exception as e:
-        click.echo(f"Failed to register agent key: {e}")
+        click.echo(f"Failed to register agent (Unknown): {e}")
 
 
 @main.command()
@@ -157,7 +217,10 @@ def unregister() -> None:
     """Unregister the agent and remove the agent key."""
     agent_key = config.get_agent_key()
     if not agent_key:
-        click.echo("No agent key found. Agent is not registered.")
+        click.echo(
+            "No agent key found. Agent is not registered. [You can use"
+            " 'ssi register' command to register]"
+        )
         return
 
     try:
