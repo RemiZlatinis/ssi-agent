@@ -94,18 +94,16 @@ class LogHandler(FileSystemEventHandler):
             print(f"Error sending status update to WebSocket server: {e}")
 
 
-async def connect_with_retry() -> Any:
+async def connect_with_retry(agent_key: str) -> Any:
     """Establish WebSocket connection with retry logic"""
     retry_delay = 5
     max_retries = 3  # Number of quick retries before increasing delay
     retry_count = 0
 
-    agent_uuid = config.get_agent_key()
-
     while True:
         try:
             websocket = await websockets.connect(
-                f"{WEBSOCKET_URI}{agent_uuid}/",
+                f"{WEBSOCKET_URI}{agent_key}/",
                 ping_interval=20,
                 ping_timeout=60,
                 close_timeout=5,
@@ -214,21 +212,22 @@ async def run_daemon() -> None:
         print(f"Log directory {LOG_DIR} does not exist.")
         return
 
-    # Get agent key
-    agent_key = config.get_agent_key()
-    if not agent_key:
-        print("No agent key found. Please register the agent first.")
-        return
-    else:
-        print(f"Using agent key: {agent_key}")
-
     while True:
         websocket = None
         observer = None
         service_watcher_thread = None
         try:
+            # Get agent key at the start of every connection cycle
+            agent_key = config.get_agent_key()
+            if not agent_key:
+                print("No agent key found. Please register the agent first. Waiting...")
+                await asyncio.sleep(10)  # Wait after checking again
+                continue
+            else:
+                print(f"Using agent key: {agent_key}")
+
             try:
-                websocket = await connect_with_retry()
+                websocket = await connect_with_retry(agent_key)
                 loop = asyncio.get_running_loop()
 
                 # Send initial agent_hello event
