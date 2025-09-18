@@ -152,21 +152,26 @@ create_directories() {
 }
 
 create_virtual_environment() {
-    print_status "Creating Python virtual environment..."
+    print_status "Setting up Python virtual environment..."
 
-    # Create virtual environment
-    python3 -m venv "$SERVICE_SCRIPTS_DIR/venv"
+    if [[ ! -d "$SERVICE_SCRIPTS_DIR/venv" ]]; then
+        print_status "Creating new virtual environment..."
+        python3 -m venv "$SERVICE_SCRIPTS_DIR/venv"
+    else
+        print_status "Virtual environment found. Updating if necessary."
+    fi
 
-    # Activate and install dependencies
-    source "$SERVICE_SCRIPTS_DIR/venv/bin/activate"
+    # Define path to venv pip for clarity and to avoid sourcing the activate script
+    VENV_PIP="$SERVICE_SCRIPTS_DIR/venv/bin/pip"
 
-    # Install the package and its dependencies
-    pip install --upgrade pip
-    pip install .
+    print_status "Upgrading pip in virtual environment..."
+    "$VENV_PIP" install --upgrade pip
 
-    deactivate
+    print_status "Installing/updating the agent and its dependencies..."
+    # Use --upgrade to ensure the package is reinstalled if source code has changed
+    "$VENV_PIP" install --upgrade .
 
-    # Set ownership of virtual environment
+    # Ensure ownership is correct on every run
     chown -R "$SERVICE_USER:$SERVICE_USER" "$SERVICE_SCRIPTS_DIR/venv"
 }
 
@@ -213,9 +218,9 @@ setup_service() {
 create_config() {
     print_status "Checking for configuration file..."
 
-if [[ ! -f "$CONFIG_DIR/config.json" ]]; then
+    if [[ ! -f "$CONFIG_DIR/config.json" ]]; then
         print_status "No configuration file found. Creating default."
-    cat > "$CONFIG_DIR/config.json" << EOF
+        cat > "$CONFIG_DIR/config.json" << EOF
 {
     "websocket_uri": "ws://localhost:5000",
     "log_level": "INFO",
@@ -223,7 +228,7 @@ if [[ ! -f "$CONFIG_DIR/config.json" ]]; then
     "config_dir": "$CONFIG_DIR"
 }
 EOF
-else
+    else
         print_status "Existing configuration file found. Settings will be preserved."
     fi
 
