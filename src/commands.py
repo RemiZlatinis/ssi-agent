@@ -16,10 +16,10 @@ def _execute(command: str) -> str:
     except subprocess.CalledProcessError as e:
         print(f"Error running command: {command}")
         print(f"Stderr: {e.stderr.strip()}")
-        exit(1)
-    except FileNotFoundError:
-        print(f"Command not found: {command}")
-        exit(1)
+        raise
+    except FileNotFoundError as e:
+        print(f"Command not found: {command.split()[0]}")
+        raise e
 
 
 def get_enabled_services() -> list[str]:
