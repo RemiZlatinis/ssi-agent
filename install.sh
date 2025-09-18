@@ -211,8 +211,10 @@ setup_service() {
 }
 
 create_config() {
-    print_status "Creating default configuration..."
+    print_status "Checking for configuration file..."
 
+if [[ ! -f "$CONFIG_DIR/config.json" ]]; then
+        print_status "No configuration file found. Creating default."
     cat > "$CONFIG_DIR/config.json" << EOF
 {
     "websocket_uri": "ws://localhost:5000",
@@ -221,11 +223,14 @@ create_config() {
     "config_dir": "$CONFIG_DIR"
 }
 EOF
+else
+        print_status "Existing configuration file found. Settings will be preserved."
+    fi
 
     chown "$SERVICE_USER:$SERVICE_USER" "$CONFIG_DIR/config.json"
     chmod 644 "$CONFIG_DIR/config.json" # Owner rw, group r, other r
 
-    # Grant admin group write access to the config file using ACLs
+    # Grant/update admin group write access to the config file using ACLs
     # This allows admin users to run 'ssi register' without 'sudo'
     setfacl -m g:"$ADMIN_GROUP":rw- "$CONFIG_DIR/config.json"
 }
