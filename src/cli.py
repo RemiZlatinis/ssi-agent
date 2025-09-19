@@ -182,14 +182,14 @@ def register() -> None:
 
             if reg_status == "completed":
                 # Clear the line and print final message
-                click.echo("\r" + " " * 20 + "\r", nl=False)
+                click.echo("\r" + " " * 40 + "\r", nl=False)
                 key = data.get("credentials").get("key")
                 if type(key) is str:
                     config.save_agent_key(key)
                 click.echo("✅ Registration completed.")
                 break
             elif reg_status == "expired":
-                click.echo("\r" + " " * 20 + "\r", nl=False)
+                click.echo("\r" + " " * 40 + "\r", nl=False)
                 click.echo("❌ Registration expired. Please try again.")
                 break
             elif reg_status == "pending":
@@ -202,7 +202,7 @@ def register() -> None:
         # Note: Truthiness is implemented to be `False` if status code ≥ 400
         if e.response is not None:
             if e.response.status_code == 410:
-                click.echo("\r" + " " * 20 + "\r", nl=False)
+                click.echo("\r" + " " * 40 + "\r", nl=False)
                 click.echo("❌ Registration code expired. Please try again.")
             elif e.response.status_code == 403:
                 click.echo("❌ Too many tries. Try later.")
