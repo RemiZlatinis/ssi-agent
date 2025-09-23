@@ -91,7 +91,7 @@ def get_uri(
 
             s = "s" if backend_url.startswith("https") else ""
             host = backend_url.replace(f"http{s}://", "")
-            host = host + "/" if not host.endswith("/") else host
+            host = host[:-1] if host.endswith("/") else host
 
             UriTemplates = {
                 "websocket": f"ws{s}://{host}/ws/agent/",
