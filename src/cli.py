@@ -13,6 +13,7 @@ from .constants import (
     URI_UNREGISTER,
     URI_WHOAMI,
 )
+from .models import Status
 from .service import Service
 
 
@@ -139,6 +140,30 @@ def run(service_id: str) -> None:
         click.echo(f"Service '{service.name}' script was triggered.")
     except Exception as e:
         click.echo(f"Failed to run service script: {e}")
+
+
+@main.group()
+def debug() -> None:
+    """Commands for debugging services."""
+    pass
+
+
+@debug.command(name="set-status")
+@click.argument("service_id")
+@click.argument(
+    "status", type=click.Choice([s.value for s in Status], case_sensitive=False)
+)
+def set_status(service_id: str, status: Status) -> None:
+    """Manually set the status of a service for debugging."""
+    # This is a mock implementation as requested.
+    # A real implementation would write a new log line to the service's log file.
+    service = Service.get_service(service_id)
+    status = Status(status.value.upper())
+    if not service:
+        click.echo(f"Service '{service_id}' not found.")
+        return
+    commands.set_service_status(service_id, status)
+    click.echo(f"The service '{service.name}' status set to '{status}'.")
 
 
 @main.command()

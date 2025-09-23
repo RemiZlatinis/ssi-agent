@@ -1,9 +1,11 @@
 """Command functions for interacting with systemd and managing service files."""
 
 import subprocess
+from datetime import datetime
 from pathlib import Path
 
-from .constants import PREFIX, SCRIPTS_DIR, SERVICES_DIR
+from .constants import LOG_DIR, PREFIX, SCRIPTS_DIR, SERVICES_DIR
+from .models import Status
 
 
 def _execute(command: str) -> str:
@@ -202,3 +204,12 @@ def force_remove(service_id: str) -> None:
         remove_unit(timer_unit)
     if script.exists():
         remove_script(service_id)
+
+
+def set_service_status(service_id: str, status: Status) -> None:
+    """Appends the give status on the services logs"""
+    service_logs = LOG_DIR / f"{service_id}.log"
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    new_log = f"{timestamp}, {status}, Manual status set"
+    command = f"sudo sh -c 'echo \"{new_log}\" >> {service_logs}'"
+    _execute(command)
