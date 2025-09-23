@@ -1,6 +1,7 @@
 """Configuration management for the Service Status Indicator Agent."""
 
 import json
+from typing import Literal, Never
 
 from .constants import CONFIG_DIR, CONFIG_FILE
 
@@ -52,3 +53,38 @@ def remove_agent_key() -> None:
         del config["agent_key"]
         with open(CONFIG_FILE, "w") as f:
             json.dump(config, f, indent=4)
+
+
+def get_uri(
+    uri: Literal[
+        "websocket",
+        "unregister",
+        "whoami",
+        "initiate_registration",
+        "registration_status",
+    ],
+) -> str | Never:
+    try:
+        with open(CONFIG_FILE) as f:
+            config = json.load(f)
+            backend_url = config.get("backend_url")
+            if not backend_url:
+                raise ValueError('"backend_url" not found in config file.')
+
+            s = "s" if backend_url.startswith("https") else ""
+            host = backend_url.replace(f"http{s}://", "")
+            host = host + "/" if not host.endswith("/") else host
+
+            UriTemplates = {
+                "websocket": f"ws{s}://{host}/ws/agent/",
+                "unregister": f"http{s}://{host}/api/agents/unregister/",
+                "whoami": f"http{s}://{s}/api/agents/me/",
+                "initiate_registration": f"http{s}://{host}/api/agents/register/initiate/",
+                "registration_status": f"http{s}://{host}/api/agents/register/status/",
+            }
+
+            return UriTemplates[uri]
+    except json.JSONDecodeError:
+        raise ValueError(f"Config file {CONFIG_FILE} is not valid JSON.")
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Config file {CONFIG_FILE} does not exist.")

@@ -17,6 +17,7 @@ SERVICE_USER="ssi-agent"
 SERVICE_SCRIPTS_DIR="/opt/ssi-agent"
 CONFIG_DIR="/etc/ssi-agent"
 LOG_DIR="/var/log/ssi-agent"
+DEFAULT_BACKEND_URL="https://api.service-status-indicator.com/"
 
 # Determine admin group for permissions
 if [ -f /etc/redhat-release ] || [ -f /etc/arch-release ]; then
@@ -222,7 +223,7 @@ create_config() {
         print_status "No configuration file found. Creating default."
         cat > "$CONFIG_DIR/config.json" << EOF
 {
-    "websocket_uri": "ws://localhost:5000",
+    "backend_url": "$DEFAULT_BACKEND_URL",
     "log_level": "INFO",
     "log_dir": "$LOG_DIR",
     "config_dir": "$CONFIG_DIR"

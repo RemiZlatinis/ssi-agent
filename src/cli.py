@@ -7,14 +7,13 @@ import click
 import requests
 
 from . import commands, config
-from .constants import (
-    URI_INITIATE_REGISTRATION,
-    URI_REGISTRATION_STATUS,
-    URI_UNREGISTER,
-    URI_WHOAMI,
-)
 from .models import Status
 from .service import Service
+
+URI_INITIATE_REGISTRATION = config.get_uri("initiate_registration")
+URI_REGISTRATION_STATUS = config.get_uri("registration_status")
+URI_UNREGISTER = config.get_uri("unregister")
+URI_WHOAMI = config.get_uri("whoami")
 
 
 @click.group()

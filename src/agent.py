@@ -14,7 +14,7 @@ from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
 from . import config
-from .constants import LOG_DIR, PING_INTERVAL_SECONDS, WEBSOCKET_URI
+from .constants import LOG_DIR, PING_INTERVAL_SECONDS
 from .models import (
     AgentHelloEvent,
     ServiceAddedEvent,
@@ -25,6 +25,8 @@ from .models import (
 )
 from .parsers import parse_log_line
 from .service import Service
+
+WEBSOCKET_URI = config.get_uri("websocket")
 
 
 class LogHandler(FileSystemEventHandler):
