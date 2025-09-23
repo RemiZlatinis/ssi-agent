@@ -55,6 +55,24 @@ def remove_agent_key() -> None:
             json.dump(config, f, indent=4)
 
 
+def set_backend_url(backend_url: str) -> None:
+    """Sets the backend URL in the config file."""
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    config = {}
+    if CONFIG_FILE.exists():
+        try:
+            with open(CONFIG_FILE) as f:
+                config = json.load(f)
+        except json.JSONDecodeError:
+            # Handle empty or corrupted file
+            pass
+
+    config["backend_url"] = backend_url
+
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(config, f, indent=4)
+
+
 def get_uri(
     uri: Literal[
         "websocket",

@@ -165,6 +165,17 @@ def set_status(service_id: str, status: Status) -> None:
     click.echo(f"The service '{service.name}' status set to '{status}'.")
 
 
+@debug.command(name="set-backend")
+@click.argument("backend_url")
+def set_backend(backend_url: str) -> None:
+    """Manually set the backend URL in the configuration file."""
+    try:
+        config.set_backend_url(backend_url)
+        click.echo(f"Backend URL set to '{backend_url}'.")
+    except Exception as e:
+        click.echo(f"Failed to set backend URL: {e}")
+
+
 @main.command()
 def register() -> None:
     """
