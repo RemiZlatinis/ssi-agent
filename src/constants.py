@@ -14,3 +14,8 @@ CONFIG_DIR = Path(f"/etc/{APP_NAME}")
 # Config file
 CONFIG_FILE = CONFIG_DIR / "config.json"  # Match install.sh format
 PING_INTERVAL_SECONDS = 10
+
+# Logging
+PUBLIC_DSN = (
+    "https://24d5031370854ccc980809a73e14b98b@servicestatusindicator.bugsink.com/1"
+)

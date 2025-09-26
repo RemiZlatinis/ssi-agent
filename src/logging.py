@@ -1,6 +1,36 @@
 import logging.config
+from importlib.metadata import PackageNotFoundError, version
 
-from .constants import LOG_DIR
+import sentry_sdk
+from sentry_sdk.integrations.logging import LoggingIntegration
+
+from .constants import LOG_DIR, PUBLIC_DSN
+
+try:
+    # Get version from installed package metadata
+    release_version = version("ssi-agent")
+except PackageNotFoundError:
+    # Fallback for when the package is not installed (e.g., in development)
+    release_version = "dev"
+
+# Initialize Sentry/BugSink first
+# (before configuring Python logging, to ensure integration captures everything)
+sentry_sdk.init(
+    PUBLIC_DSN,
+    integrations=[
+        LoggingIntegration(
+            # Capture INFO and above as breadcrumbs (contextual info)
+            level=logging.INFO,
+            # Send ERROR and above as full events to BugSink
+            event_level=logging.ERROR,
+        )
+    ],
+    send_default_pii=False,  # Personally Identifiable Information
+    max_request_body_size="always",
+    traces_sample_rate=0,
+    release=release_version,
+    environment="production",
+)
 
 logging_config = {
     "version": 1,
