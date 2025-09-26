@@ -15,6 +15,7 @@ from watchdog.observers import Observer
 
 from . import config
 from .constants import LOG_DIR, PING_INTERVAL_SECONDS
+from .logging import daemon_logger as logger
 from .models import (
     AgentHelloEvent,
     ServiceAddedEvent,
@@ -47,8 +48,12 @@ class LogHandler(FileSystemEventHandler):
             return  # Ignore directory changes
 
         file_path = event.src_path
-        if not str(file_path).startswith(str(LOG_DIR.absolute())):
-            return  # Safety check
+        if (
+            not str(file_path).startswith(str(LOG_DIR.absolute()))
+            or not str(file_path).endswith(".log")
+            or str(file_path).endswith("_agent.log")  # Ignore agent daemon logs
+        ):
+            return  # Safety checks
 
         try:
             # Initialize file position if first time seeing the file
@@ -69,7 +74,7 @@ class LogHandler(FileSystemEventHandler):
                         )
                         service = Service.get_service(service_id)
                         if not service:
-                            print(f"Service with ID {service_id} not found.")
+                            logger.info(f"Service with ID {service_id} not found.")
                             return
 
                         timestamp, status, message = parse_log_line(last_line)
@@ -86,14 +91,15 @@ class LogHandler(FileSystemEventHandler):
                         asyncio.run_coroutine_threadsafe(
                             self.send_status_update(status_event), self.loop
                         )
+                        logger.info(f"Send status update: {status_update}")
         except Exception as e:
-            print(f"Error reading {str(file_path)}: {e}")
+            logger.error(f"Error reading {str(file_path)}: {e}")
 
     async def send_status_update(self, status_event: StatusUpdateEvent) -> None:
         try:
             await self.websocket.send(status_event.model_dump_json())
         except Exception as e:
-            print(f"Error sending status update to WebSocket server: {e}")
+            logger.error(f"Error sending status update to WebSocket server: {e}")
 
 
 async def connect_with_retry(agent_key: str) -> Any:
@@ -110,7 +116,7 @@ async def connect_with_retry(agent_key: str) -> Any:
                 ping_timeout=60,
                 close_timeout=5,
             )
-            print("Connected to WebSocket server")
+            logger.info("Connected to WebSocket server")
             return websocket
         except (
             websockets.exceptions.ConnectionClosed,
@@ -122,7 +128,7 @@ async def connect_with_retry(agent_key: str) -> Any:
                 retry_delay = min(30, retry_delay * 2)  # Exponential backoff up to 30s
                 retry_count = 0
 
-            print(
+            logger.info(
                 f"Connection attempt failed: {e}. Retrying in {retry_delay} seconds..."
             )
             await asyncio.sleep(retry_delay)
@@ -150,10 +156,10 @@ async def send_agent_hello(websocket: Any, agent_key: str) -> list[ServiceInfo] 
         hello_event = AgentHelloEvent(agent_key=agent_key, services=service_infos)
 
         await websocket.send(hello_event.model_dump_json())
-        print(f"Sent agent_hello event with {len(service_infos)} services")
+        logger.info(f"Sent agent_hello event with {len(service_infos)} services")
         return service_infos
     except Exception as e:
-        print(f"Error sending agent_hello event: {e}")
+        logger.error(f"Error sending agent_hello event: {e}")
         return None
 
 
@@ -190,7 +196,7 @@ def watch_service_changes(
                 asyncio.run_coroutine_threadsafe(
                     websocket.send(added_event.model_dump_json()), loop
                 )
-                print(f"Service {service_id} added")
+                logger.info(f"Service {service_id} added")
 
             # Check for removed services
             removed_services = known_services - current_service_ids
@@ -199,19 +205,19 @@ def watch_service_changes(
                 asyncio.run_coroutine_threadsafe(
                     websocket.send(removed_event.model_dump_json()), loop
                 )
-                print(f"Service {service_id} removed")
+                logger.info(f"Service {service_id} removed")
 
             known_services = current_service_ids
             time.sleep(scan_interval)
 
         except Exception as e:
-            print(f"Error in service change watcher: {e}")
+            logger.error(f"Error in service change: {e}")
             time.sleep(scan_interval)
 
 
 async def run_daemon() -> None:
     if not os.path.exists(LOG_DIR):
-        print(f"Log directory {LOG_DIR} does not exist.")
+        logger.error(f"Log directory {LOG_DIR} does not exist.")
         return
 
     while True:
@@ -222,11 +228,13 @@ async def run_daemon() -> None:
             # Get agent key at the start of every connection cycle
             agent_key = config.get_agent_key()
             if not agent_key:
-                print("No agent key found. Please register the agent first. Waiting...")
+                logger.info(
+                    "No agent key found. Please register the agent first. Waiting..."
+                )
                 await asyncio.sleep(10)  # Wait after checking again
                 continue
             else:
-                print(f"Using agent key: {agent_key}")
+                logger.info(f"Using agent key: {agent_key}")
 
             try:
                 websocket = await connect_with_retry(agent_key)
@@ -251,7 +259,7 @@ async def run_daemon() -> None:
                 )
                 service_watcher_thread.start()
 
-                print(f"Watching for changes in: {LOG_DIR}")
+                logger.info(f"Watching for changes in: {LOG_DIR}")
                 while True:
                     try:
                         await websocket.ping()
@@ -261,11 +269,11 @@ async def run_daemon() -> None:
                         websockets.exceptions.ConnectionClosedError,
                         OSError,
                     ) as e:
-                        print(f"Connection error: {e}")
+                        logger.error(f"Connection error: {e}")
                         raise  # Re-raise to trigger reconnection
 
             except Exception as e:
-                print(f"Connection lost: {e}. Reconnecting...")
+                logger.error(f"Connection lost: {e}. Reconnecting...")
                 if observer:
                     observer.stop()
                     observer.join()
@@ -290,10 +298,11 @@ def main() -> int:
     except KeyboardInterrupt:
         print("\nExiting...")
     except Exception as e:
-        print(f"Fatal error: {e}")
+        logger.error(f"Fatal error: {e}")
         return 1
     return 0
 
 
 if __name__ == "__main__":
+    logger.info("Starting daemon...")
     exit(main())
