@@ -141,7 +141,6 @@ create_directories() {
     mkdir -p "$SERVICE_SCRIPTS_DIR/bin"
 
     chown -R "$SERVICE_USER:$SERVICE_USER" "$SERVICE_SCRIPTS_DIR"
-    chown "$SERVICE_USER:$SERVICE_USER" "$LOG_DIR"
     chown "$SERVICE_USER:$SERVICE_USER" "$CONFIG_DIR"
     chmod 755 "$SERVICE_SCRIPTS_DIR"
     chmod 755 "$LOG_DIR"

@@ -6,6 +6,7 @@ After=network.target
 Type=simple
 User=ssi-agent
 Group=ssi-agent
+LogsDirectory=ssi-agent
 ExecStart=/opt/ssi-agent/venv/bin/ssi-agent-daemon
 Restart=always
 RestartSec=5
