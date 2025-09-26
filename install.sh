@@ -206,7 +206,7 @@ setup_service() {
 
     systemctl daemon-reload
     systemctl enable "$SERVICE_NAME"
-    systemctl start "$SERVICE_NAME"
+    systemctl restart "$SERVICE_NAME"
 
     if [ $? -eq 0 ]; then
         print_status "Daemon started successfully."
