@@ -15,7 +15,7 @@ from watchdog.observers import Observer
 
 from . import config
 from .constants import LOG_DIR, PING_INTERVAL_SECONDS
-from .logging import daemon_logger as logger
+from .logging_config import daemon_logger as logger
 from .models import (
     AgentHelloEvent,
     ServiceAddedEvent,
