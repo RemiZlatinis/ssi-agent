@@ -162,7 +162,6 @@ def set_status(service_id: str, status: Status) -> None:
     # This is a mock implementation as requested.
     # A real implementation would write a new log line to the service's log file.
     service = Service.get_service(service_id)
-    status = Status(status.value.upper())
     if not service:
         click.echo(f"Service '{service_id}' not found.")
         return
