@@ -24,16 +24,21 @@ def main() -> None:
 
 @main.command()
 @click.argument("service_script_path", type=click.Path(exists=True, dir_okay=False))
-def add(service_script_path: str) -> None:
+@click.option("-u", "--update", is_flag=True, help="Update an existing service.")
+def add(service_script_path: str, update: bool) -> None:
     """Add a new service."""
     try:
         service = Service(service_script_path)
-        if service.exists():
+        if service.exists() and not update:
             click.echo(f"Service '{service.name}' already exists.")
             return
 
+        if service.exists():
+            service.disable()
+
         service.enable()
-        click.echo(f"Service '{service.name}' added successfully.")
+        action = "updated" if update else "added"
+        click.echo(f"Service '{service.name}' {action} successfully.")
     except Exception as e:
         click.echo(f"Failed to add service: {e}")
 
