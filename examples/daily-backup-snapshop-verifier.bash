@@ -3,7 +3,7 @@
 # name: Daily Backup Snapshot Verifier
 # description: Checks if a snapshot has been created for today.
 # version: 1.0
-# schedule: *:0/01:00
+# schedule: 0/6:00:00
 # timeout: 10
 
 # --- Description ---
