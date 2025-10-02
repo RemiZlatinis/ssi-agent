@@ -42,8 +42,8 @@ fi
 RESPONSE=$(curl -s -H "Accept: application/json" "$URL" 2>/dev/null)
 
 # Normalize by trimming whitespace and newlines for comparison
-# NORMALIZED_RESPONSE=$(echo "$RESPONSE" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-# NORMALIZED_EXPECTED=$(echo "$EXPECTED_RESPONSE" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+NORMALIZED_RESPONSE=$(echo "$RESPONSE" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+NORMALIZED_EXPECTED=$(echo "$EXPECTED_RESPONSE" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
 # Check if response matches expected JSON exactly (after normalization)
 if [[ "$NORMALIZED_EXPECTED" == "$NORMALIZED_RESPONSE" ]]; then
