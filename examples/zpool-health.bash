@@ -57,8 +57,21 @@ while true; do
 done
 
 # Check final zpool status after scrub completes
-FINAL_POOL_STATUS=$(zpool status "$POOL_NAME" | grep "state:" | awk '{print $2}')
-FINAL_POOL_ERRORS=$(zpool status "$POOL_NAME" | grep "errors:" | sed -E 's/errors: (.*)/\1/')
+ZPOOL_STATUS_OUTPUT=$(zpool status "$POOL_NAME")
+FINAL_POOL_STATUS=$(echo "$ZPOOL_STATUS_OUTPUT" | grep "state:" | awk '{print $2}')
+FINAL_POOL_ERRORS=$(echo "$ZPOOL_STATUS_OUTPUT" | grep "errors:" | sed -E 's/errors: (.*)/\1/')
+
+# Check for CKSUM errors. We look at the 5th column (CKSUM) for any non-zero value.
+# We skip the header line 'NAME...CKSUM' and the pool name line itself.
+CKSUM_ERRORS=$(echo "$ZPOOL_STATUS_OUTPUT" | awk '
+    /config:/ { in_config=1; next }
+    in_config && NF >= 5 && $1 != "NAME" && $5 > 0 { print $1 " has " $5 " CKSUM errors"; }
+')
+
+# We also need to make sure the CHSUM_ERRORS is a single line for the SSI logs
+# We can keep only the first print line. We assume the user will check for CKSUM errors
+# manually on the pool after we inform for a CKSUM error.
+CKSUM_ERRORS=$(echo "$CKSUM_ERRORS" | head -n 1)
 
 if [ "$FINAL_POOL_STATUS" != "ONLINE" ]; then
     echo "$TIMESTAMP, $STATUS_FAILURE, ZFS pool '$POOL_NAME' is in state: $FINAL_POOL_STATUS. Errors: $FINAL_POOL_ERRORS"
@@ -66,6 +79,9 @@ if [ "$FINAL_POOL_STATUS" != "ONLINE" ]; then
 elif [ "$FINAL_POOL_ERRORS" != "No known data errors" ]; then
     echo "$TIMESTAMP, $STATUS_FAILURE, ZFS pool '$POOL_NAME' has errors: $FINAL_POOL_ERRORS"
     exit 1
+elif [ -n "$CKSUM_ERRORS" ]; then
+    echo "$TIMESTAMP, $STATUS_WARNING, ZFS pool '$POOL_NAME' has CKSUM errors. Details: $CKSUM_ERRORS"
+    exit 0
 else
     echo "$TIMESTAMP, $STATUS_OK, ZFS pool '$POOL_NAME' is healthy."
     exit 0
