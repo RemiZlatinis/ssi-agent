@@ -65,8 +65,11 @@ FINAL_POOL_ERRORS=$(echo "$ZPOOL_STATUS_OUTPUT" | grep "errors:" | sed -E 's/err
 # We skip the header line 'NAME...CKSUM' and the pool name line itself.
 CKSUM_ERRORS=$(echo "$ZPOOL_STATUS_OUTPUT" | awk '
     /config:/ { in_config=1; next }
-    in_config && NF >= 5 && $1 != "NAME" && $5 > 0 { print $1 " has " $5 " CKSUM errors"; }
-')
+    /errors:/ { in_config=0; next }
+    in_config && NF >= 5 && $1 != "NAME" && $5 != "CKSUM" && $5 + 0 > 0 {
+        print $1 " has " $5 " CKSUM errors";
+    }
+' | head -n 1)
 
 # We also need to make sure the CHSUM_ERRORS is a single line for the SSI logs
 # We can keep only the first print line. We assume the user will check for CKSUM errors
