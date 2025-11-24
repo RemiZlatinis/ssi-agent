@@ -13,7 +13,9 @@ CONFIG_DIR = Path(f"/etc/{APP_NAME}")
 
 # Config file
 CONFIG_FILE = CONFIG_DIR / "config.json"  # Match install.sh format
-PING_INTERVAL_SECONDS = 10
+WEBSOCKET_PING_INTERVAL = 30
+WEBSOCKET_PING_TIMEOUT = 70
+WEBSOCKET_CLOSE_TIMEOUT = 5
 
 # Logging
 PUBLIC_DSN = (
