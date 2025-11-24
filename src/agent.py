@@ -260,18 +260,6 @@ async def run_daemon() -> None:
                 service_watcher_thread.start()
 
                 logger.info(f"Watching for changes in: {LOG_DIR}")
-                while True:
-                    try:
-                        await websocket.ping()
-                        await asyncio.sleep(PING_INTERVAL_SECONDS)
-                    except (
-                        websockets.exceptions.ConnectionClosed,
-                        websockets.exceptions.ConnectionClosedError,
-                        OSError,
-                    ) as e:
-                        logger.error(f"Connection error: {e}")
-                        raise  # Re-raise to trigger reconnection
-
             except Exception as e:
                 logger.error(f"Connection lost: {e}. Reconnecting...")
                 if observer:
