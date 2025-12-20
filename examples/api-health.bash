@@ -1,26 +1,27 @@
 #!/bin/bash
 
+# --- Manifest --- #
 # name: API Health
 # description: Checks the health of an API that has a health check endpoint
 # version: 1.0
 # schedule: *:0/01:00
 # timeout: 10
 
-# --- Description ---
+# --- Overview --- #
 # The following script calls the health check endpoint at the configured URL
 # and checks for the expected response.
 # Returns "OK" "API is healthy" if all checks are fine.
 # Returns "WARNING" "Health check failed" if any check fails or the request fails.
 # Returns "FAILURE" "API is unreachable" if the api is unreachable.
 
-# --- Constants ---
+# --- Standard Constants --- #
 STATUS_OK="OK"
 STATUS_UPDATE="UPDATE"
 STATUS_WARNING="WARNING"
 STATUS_FAILURE="FAILURE"
 TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 
-# --- Configuration ---
+# --- Configurations --- #
 URL="https://api.service-status-indicator.com/api/health/"
 read -r -d '' EXPECTED_RESPONSE << 'EOF'
 {"Cache backend: default": "working",
@@ -29,7 +30,12 @@ read -r -d '' EXPECTED_RESPONSE << 'EOF'
  "MigrationsHealthCheck": "working"}
 EOF
 
-# --- Script Logic ---
+# --- Dependencies --- #
+# curl
+# sed
+# tr
+
+# --- Main --- #
 # Fetch HTTP status first to check reachability
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Accept: application/json" "$URL" 2>/dev/null)
 

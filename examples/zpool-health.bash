@@ -1,12 +1,13 @@
 #!/bin/bash
 
+# --- Manifest --- #
 # name: ZFS Zpool Health
 # description: Checks the health of ZFS zpools.
 # version: 1.0
 # schedule: *-*-* 06:00:00
 # timeout: 300000
 
-# --- Constants ---
+# --- Standard Constants --- #
 STATUS_OK="OK"
 STATUS_UPDATE="UPDATE"
 STATUS_WARNING="WARNING"
@@ -14,10 +15,13 @@ STATUS_FAILURE="FAILURE"
 STATUS_ERROR="ERROR"
 TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 
-# --- Configuration ---
+# --- Configurations --- #
 POOL_NAME="data_pool"
 
-# --- Script Logic ---
+# --- Dependencies --- #
+# zpool
+
+# --- Main --- #
 # Check if zpool command is available
 if ! command -v zpool &> /dev/null
 then

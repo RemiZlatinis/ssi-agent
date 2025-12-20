@@ -1,11 +1,12 @@
 #!/bin/bash
 
+# --- Manifest --- #
 # name: Dummy Service
 # description: A dummy service for testing.
 # version: 1
 # schedule: *:0/1
 
-# --- Constants ---
+# --- Standard Constants --- #
 STATUS_OK="OK"
 STATUS_UPDATE="UPDATE"
 STATUS_WARNING="WARNING"

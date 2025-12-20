@@ -1,12 +1,13 @@
 #!/bin/bash
 
+# --- Manifest --- #
 # name: Daily Backup Snapshot Verifier
 # description: Checks if a snapshot has been created for today.
 # version: 1.0
 # schedule: 0/6:00:00
 # timeout: 10
 
-# --- Description ---
+# --- Overview --- #
 # The following script lists the ZFS snapshots and checks if the expected snapshot is present.
 # This doesn't verify if the backup is accurate or not. Only if the expected snapshot is present.
 # Returns "OK" "Latest snapshot [YYYY-MM-DD HH:MM:SS]" if the latest snapshot is today.
@@ -14,17 +15,20 @@
 # Returns "FAILURE" "Multiple snapshots are missing" if latest snapshot is not today or yesterday.
 
 
-# --- Constants ---
+# --- Standard Constants --- #
 STATUS_OK="OK"
 STATUS_UPDATE="UPDATE"
 STATUS_WARNING="WARNING"
 STATUS_FAILURE="FAILURE"
 TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 
-# --- Configuration ---
+# --- Configurations --- #
 BACKUP_DIR="data_pool/backups/root-backup"
 
-# --- Script Logic ---
+# --- Dependencies --- #
+# zfs
+
+# --- Main --- #
 # List snapshot exact date-times for the backup directory
 # -H: No header
 # -o: Output fields

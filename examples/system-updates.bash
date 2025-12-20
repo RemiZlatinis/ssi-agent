@@ -1,30 +1,34 @@
 #!/bin/bash
 
+# --- Manifest --- #
 # name: System Updates
 # description: Checking for system updates on Debian/Ubuntu
 # version: 1.0
 # schedule: *:0/01:00
 # timeout: 20
 
-# --- Description ---
+# --- Overview --- #
 # The following script checks for updates on a Debian system
 # Returns ["ok", "System is up to date"] if there are no updates
 # Returns ["update", "X available updates"] if there are updates
 
-# --- Constants ---
+# --- Standard Constants --- #
 STATUS_OK="OK"
 STATUS_UPDATE="UPDATE"
 STATUS_WARNING="WARNING"
 STATUS_FAILURE="FAILURE"
 TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 
-# --- Configuration ---
+# --- Configurations --- #
 # You can customize the output messages here if needed.
 MSG_OK="System is up to date"
 MSG_UPDATE_AVAILABLE="available updates"
 MSG_SECURITY_UPDATES="security updates"
 
-# --- Script Logic ---
+# --- Dependencies --- #
+# apt-check
+
+# --- Main --- #
 # Check for both standard and security updates
 updates=$(/usr/lib/update-notifier/apt-check 2>&1)
 

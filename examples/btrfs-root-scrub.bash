@@ -1,12 +1,13 @@
 #!/bin/bash
 
+# --- Manifest --- #
 # name: BTRFS Scrub
 # description: Initiates a BTRFS scrub on a filesystem, reports its progress, and provides a final status.
 # version: 1.0
 # schedule: *-*-* 05:00:00
 # timeout: 1800
 
-# --- Description --- #
+# --- Overview --- #
 # This script manages and monitors BTRFS filesystem scrubs for a specified mount point.
 #
 # It performs the following actions:
@@ -18,7 +19,7 @@
 #    if no errors were found, a warning if the scrub was interrupted, or a
 #    failure if data errors were detected.
 
-# --- Constants ---
+# --- Standard Constants --- #
 STATUS_OK="OK"
 STATUS_UPDATE="UPDATE"
 STATUS_WARNING="WARNING"
@@ -26,11 +27,17 @@ STATUS_FAILURE="FAILURE"
 STATUS_ERROR="ERROR"
 TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 
-# --- Configuration ---
+# --- Configurations --- #
 MOUNT_POINT="/"
 INTERNAL_INTERVAL=3
 
-# --- Script Logic ---
+# --- Dependencies --- #
+# btrfs
+# awk
+# grep
+# sed
+
+# --- Main --- #
 # Verify the mount point exists.
 if [ ! -d "$MOUNT_POINT" ]; then
     echo "$(date +"%Y-%m-%d %H:%M:%S"), ERROR, Mount point $MOUNT_POINT does not exist."
