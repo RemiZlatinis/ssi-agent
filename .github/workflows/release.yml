@@ -11,7 +11,7 @@ on:
 
 env:
   PACKAGE_NAME: ssi-agent
-  PACKAGE_DESCRIPTION: "The agent of the Service Status Indicator monitoring framework"
+  PACKAGE_DESCRIPTION: "The agent component of the Service Status Indicator monitoring system"
 
 jobs:
   build-deb:
