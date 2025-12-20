@@ -14,7 +14,12 @@ from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
 from . import config
-from .constants import LOG_DIR, PING_INTERVAL_SECONDS
+from .constants import (
+    LOG_DIR,
+    WEBSOCKET_CLOSE_TIMEOUT,
+    WEBSOCKET_PING_INTERVAL,
+    WEBSOCKET_PING_TIMEOUT,
+)
 from .logging_config import daemon_logger as logger
 from .models import (
     AgentHelloEvent,
@@ -112,9 +117,9 @@ async def connect_with_retry(agent_key: str) -> Any:
         try:
             websocket = await websockets.connect(
                 f"{WEBSOCKET_URI}{agent_key}/",
-                ping_interval=20,
-                ping_timeout=60,
-                close_timeout=5,
+                ping_interval=WEBSOCKET_PING_INTERVAL,
+                ping_timeout=WEBSOCKET_PING_TIMEOUT,
+                close_timeout=WEBSOCKET_CLOSE_TIMEOUT,
             )
             logger.info("Connected to WebSocket server")
             return websocket
@@ -260,18 +265,6 @@ async def run_daemon() -> None:
                 service_watcher_thread.start()
 
                 logger.info(f"Watching for changes in: {LOG_DIR}")
-                while True:
-                    try:
-                        await websocket.ping()
-                        await asyncio.sleep(PING_INTERVAL_SECONDS)
-                    except (
-                        websockets.exceptions.ConnectionClosed,
-                        websockets.exceptions.ConnectionClosedError,
-                        OSError,
-                    ) as e:
-                        logger.error(f"Connection error: {e}")
-                        raise  # Re-raise to trigger reconnection
-
             except Exception as e:
                 logger.error(f"Connection lost: {e}. Reconnecting...")
                 if observer:
