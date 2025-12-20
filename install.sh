@@ -84,10 +84,10 @@ check_system_requirements() {
         exit 1
     fi
 
-    # Check Python version (minimum 3.9)
+    # Check Python version (minimum 3.12)
     PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
     if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)'; then
-        print_error "Python 3.9 or higher is required. Found: Python $PYTHON_VERSION"
+        print_error "Python 3.12 or higher is required. Found: Python $PYTHON_VERSION"
         exit 1
     fi
 
@@ -339,7 +339,7 @@ uninstall_agent() {
     echo "The following may have been removed:"
     echo "  - Systemd service: $SERVICE_NAME"
     echo "  - Application directory: $SERVICE_SCRIPTS_DIR"
-    echo "  - Configuration: $CONFIG_DIR"
+    echo "  - Configurationss: $CONFIG_DIR"
     echo "  - System user: $SERVICE_USER"
     echo "  - Virtual environment and dependencies"
     echo ""
