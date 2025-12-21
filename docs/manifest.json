@@ -1,66 +1,124 @@
 {
   "version": 1,
   "title": "SSI Agent Documentation",
-  "pages": [
+  "sections": [
     {
-      "id": "index",
-      "title": "SSI Agent Documentation",
-      "file": "00-index.md",
-      "order": 0
-    },
-    {
-      "id": "overview",
-      "title": "Overview",
-      "file": "01-overview.md",
-      "order": 1
-    },
-    {
-      "id": "installation",
-      "title": "Installation",
-      "file": "02-installation.md",
-      "order": 2
-    },
-    {
-      "id": "quick-start",
-      "title": "Quick Start",
-      "file": "03-quick-start.md",
-      "order": 3
-    },
-    {
-      "id": "architecture",
-      "title": "Architecture",
-      "file": "04-architecture.md",
-      "order": 4
+      "id": "core",
+      "title": "Core",
+      "order": 0,
+      "pages": [
+        {
+          "id": "index",
+          "title": "SSI Agent Core",
+          "file": "00-index.md",
+          "order": 0
+        },
+        {
+          "id": "overview",
+          "title": "Overview",
+          "file": "01-overview.md",
+          "order": 1
+        },
+        {
+          "id": "installation",
+          "title": "Installation",
+          "file": "02-installation.md",
+          "order": 2
+        },
+        {
+          "id": "quick-start",
+          "title": "Quick Start",
+          "file": "03-quick-start.md",
+          "order": 3
+        },
+        {
+          "id": "architecture",
+          "title": "Architecture",
+          "file": "04-architecture.md",
+          "order": 4
+        }
+      ]
     },
     {
       "id": "cli-reference",
       "title": "CLI Reference",
-      "file": "05-cli-reference.md",
-      "order": 5
+      "order": 1,
+      "pages": [
+        {
+          "id": "cli-reference",
+          "title": "CLI Reference Overview",
+          "file": "05-cli-reference.md",
+          "order": 0
+        }
+      ]
     },
     {
-      "id": "configuration",
-      "title": "Configuration",
-      "file": "06-configuration.md",
-      "order": 6
+      "id": "service-scripts",
+      "title": "Service Scripts",
+      "order": 2,
+      "pages": [
+        {
+          "id": "service-scripts",
+          "title": "Service Scripts Overview",
+          "file": "service-scripts/00-index.md",
+          "order": 0
+        },
+        {
+          "id": "structure",
+          "title": "Structure",
+          "file": "service-scripts/01-structure.md",
+          "order": 1
+        },
+        {
+          "id": "manifest-reference",
+          "title": "Manifest Reference",
+          "file": "service-scripts/02-manifest-reference.md",
+          "order": 2
+        },
+        {
+          "id": "status-codes",
+          "title": "Status Codes",
+          "file": "service-scripts/03-status-codes.md",
+          "order": 3
+        },
+        {
+          "id": "examples",
+          "title": "Examples",
+          "file": "service-scripts/04-examples.md",
+          "order": 4
+        },
+        {
+          "id": "best-practices",
+          "title": "Best Practices",
+          "file": "service-scripts/05-best-practices.md",
+          "order": 5
+        }
+      ]
     },
     {
-      "id": "troubleshooting",
-      "title": "Troubleshooting",
-      "file": "90-troubleshooting.md",
-      "order": 90
-    },
-    {
-      "id": "faq",
-      "title": "FAQ",
-      "file": "91-faq.md",
-      "order": 91
-    },
-    {
-      "id": "changelog",
-      "title": "Changelog",
-      "file": "99-changelog.md",
-      "order": 99
+      "id": "reference",
+      "title": "Reference",
+      "order": 90,
+      "pages": [
+        {
+          "id": "troubleshooting",
+          "title": "Troubleshooting",
+          "file": "90-troubleshooting.md",
+          "order": 90
+        },
+        {
+          "id": "faq",
+          "title": "FAQ",
+          "file": "91-faq.md",
+          "order": 91
+        },
+        {
+          "id": "changelog",
+          "title": "Changelog",
+          "file": "99-changelog.md",
+          "order": 99
+        }
+      ]
     }
   ]
 }
