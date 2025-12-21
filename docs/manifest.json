@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "title": "SSI Agent Documentation",
+  "pages": [
+    {
+      "id": "index",
+      "title": "SSI Agent Documentation",
+      "file": "00-index.md",
+      "order": 0
+    },
+    {
+      "id": "overview",
+      "title": "Overview",
+      "file": "01-overview.md",
+      "order": 1
+    },
+    {
+      "id": "installation",
+      "title": "Installation",
+      "file": "02-installation.md",
+      "order": 2
+    },
+    {
+      "id": "quick-start",
+      "title": "Quick Start",
+      "file": "03-quick-start.md",
+      "order": 3
+    },
+    {
+      "id": "architecture",
+      "title": "Architecture",
+      "file": "04-architecture.md",
+      "order": 4
+    },
+    {
+      "id": "cli-reference",
+      "title": "CLI Reference",
+      "file": "05-cli-reference.md",
+      "order": 5
+    },
+    {
+      "id": "configuration",
+      "title": "Configuration",
+      "file": "06-configuration.md",
+      "order": 6
+    },
+    {
+      "id": "troubleshooting",
+      "title": "Troubleshooting",
+      "file": "90-troubleshooting.md",
+      "order": 90
+    },
+    {
+      "id": "faq",
+      "title": "FAQ",
+      "file": "91-faq.md",
+      "order": 91
+    },
+    {
+      "id": "changelog",
+      "title": "Changelog",
+      "file": "99-changelog.md",
+      "order": 99
+    }
+  ]
+}
