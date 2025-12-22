@@ -29,6 +29,13 @@
 
 ---
 
+## Development commands
+
+_Note: During the development and testing the ssi-agent should run in a container with systemd init to simulate the environment and eliminate system inconsistencies._
+
+- Build the development container with `podman build -t ssi-dev .`
+- Run the development container with `podman run -d --name ssi-agent-dev --replace --systemd=always -v "${PWD}:/opt/ssi-agent" ssi-dev`
+
 ## Execution Model
 
 | Aspect           | Specification                                                |

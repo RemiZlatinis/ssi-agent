@@ -1,0 +1,46 @@
+# This file is used to build a container to run the ssi-agent 
+# in a reproducible environment to eliminate system inconsistencies
+# and simplify development and testing.
+
+# Use the latest Ubuntu image
+FROM ubuntu:latest
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 1. Install systemd and basic dependencies
+# We also install python3 and curl (needed for poetry)
+RUN apt-get update && apt-get install -y \
+    systemd \
+    systemd-sysv \
+    python3 \
+    python3-venv \
+    python3-pip \
+    curl \
+    git \
+    sudo \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Install Poetry
+ENV POETRY_HOME="/opt/poetry"
+RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH="$POETRY_HOME/bin:$PATH"
+
+# 3. Setup a working directory
+WORKDIR /opt/ssi-agent
+
+# 4. cleanup systemd services that might conflict with containerization
+# (Standard practice for systemd inside containers to avoid mounting errors)
+RUN cd /lib/systemd/system/sysinit.target.wants/ \
+    && rm -f $(ls | grep -v systemd-tmpfiles-setup) \
+    && rm -f /lib/systemd/system/multi-user.target.wants/* \
+    && rm -f /etc/systemd/system/*.wants/* \
+    && rm -f /lib/systemd/system/local-fs.target.wants/* \
+    && rm -f /lib/systemd/system/sockets.target.wants/*udev* \
+    && rm -f /lib/systemd/system/sockets.target.wants/*initctl* \
+    && rm -f /lib/systemd/system/basic.target.wants/* \
+    && rm -f /lib/systemd/system/anaconda.target.wants/*
+
+# 5. Set the default command to start systemd
+CMD ["/sbin/init"]
