@@ -1,11 +1,16 @@
-# AGENTS.md — ssi-agent
+# SSI Agent (ssi-agent repository)
 
-> **This file takes precedence over README.md when directives conflict.**  
-> **Architectural intent must be preserved over convenience.**
+> **This project is the Agent component of the SSI system.**
 
----
+## Overview _(of the whole SSI system)_
 
-## Scope
+_Full title & subtitle: Service Status Indicator (SSI) - Simplified Script-Driven Monitoring System_
+
+The Service Status Indicator (SSI) is a monitoring system designed to decouple the monitoring logic of the needed infrastructure to communicate the information.
+
+In practice, SSI allows power-users and system admins to monitor anything using BASH scripts. Those called **service scripts**, as long as they follow the SSI conventions and the standardized output, the system handles the rest. _(Capturing the outcome, sending, and notifying the end-user through the backend in real-time)_
+
+The SSI is a three-piece puzzle. The _Backend_, _Agent_, and _Frontend_ are the key components. The _**Agent**_ is the piece of the software installed on any Linux system with systemd, and is where the _service scripts_ act. It’s composed of two parts, the _daemon_ and the _CLI_. The _CLI_ validates and configures the Service and Timer units of systemd needed for the added _service scripts_ to run. The _service scripts_ are producing standardized logs where the _daemon_ collects and sends them to the _Backend_ in real-time. The _Frontend_ then receives the information through push notifications or maintains a real-time communication channel with the _Backend_.
 
 ### What This Repository Is
 
