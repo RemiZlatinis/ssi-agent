@@ -1,200 +1,126 @@
-# SSI Agent (ssi-agent repository)
+# SSI Agent
 
-> **This project is the Agent component of the SSI system.**
+> **Context for AI Agents**
 
-## Overview _(of the whole SSI system)_
+> **Role**: You are an expert Python developer working on the **SSI Agent** component. This is the Linux daemon responsible for running service scripts and reporting status to the backend.
 
-_Full title & subtitle: Service Status Indicator (SSI) - Simplified Script-Driven Monitoring System_
+## 🧠 Project Overview
 
-The Service Status Indicator (SSI) is a monitoring system designed to decouple the monitoring logic of the needed infrastructure to communicate the information.
+**Service Status Indicator (SSI)** is a monitoring ecosystem designed to decouple monitoring logic (BASH scripts) from communication infrastructure.
 
-In practice, SSI allows power-users and system admins to monitor anything using BASH scripts. Those called **service scripts**, as long as they follow the SSI conventions and the standardized output, the system handles the rest. _(Capturing the outcome, sending, and notifying the end-user through the backend in real-time)_
+This repository (`ssi-agent`) contains the **Agent** component.
 
-The SSI is a three-piece puzzle. The _Backend_, _Agent_, and _Frontend_ are the key components. The _**Agent**_ is the piece of the software installed on any Linux system with systemd, and is where the _service scripts_ act. It’s composed of two parts, the _daemon_ and the _CLI_. The _CLI_ validates and configures the Service and Timer units of systemd needed for the added _service scripts_ to run. The _service scripts_ are producing standardized logs where the _daemon_ collects and sends them to the _Backend_ in real-time. The _Frontend_ then receives the information through push notifications or maintains a real-time communication channel with the _Backend_.
+### 🌍 Global Architecture Context
 
-### What This Repository Is
+_Essential context since this repo works as part of a distributed system._
 
-- Monitoring agent/daemon for Linux systems (systemd-dependent)
-- Runs service checks and reports status to backend
-- Operates unattended, headless, and predictably
-- Built with Python 3.12+, Click CLI, and WebSocket client
+The system flows data from the Edge (Servers/Agents) to the Core (Backend) and finally to the User (Mobile/Web Client).
 
-### What This Repository Is NOT
+**The Three-Piece Puzzle:**
 
-- A cross-platform tool (Linux only)
-- An interactive application
-- A self-updating system
-- A standalone monitoring solution
+1.  **The Agent (Worker)**:
+    - **This Repository**. Installed on Linux/Systemd.
+    - Executes service scripts, captures standardized CSV logs, and streams them to the Backend.
+2.  **The Backend (Brain)**:
+    - **Closed Source**.
+    - Central hub that receives updates from Agents and pushes real-time notifications to Clients.
+3.  **The Client (Status Board)**:
+    - Mobile/Web Interface (React Native).
+    - Connects to Backend to display status.
 
-### Interacts With
+### Core Responsibilities (Agent)
 
-| Component     | Relationship                            |
-| ------------- | --------------------------------------- |
-| `ssi-backend` | Reports status via WebSocket connection |
+- **Execution**: Run BASH service scripts via `systemd` timers.
+- **Observation**: Watch log files for standardized CSV output lines.
+- **Reporting**: Stream status updates to the `ssi-backend` via WebSocket.
+- **Management**: Provide a CLI (`ssi`) for users to add/remove services.
 
----
+## 🛠️ Tech Stack & Environment
 
-## Development commands
+| Category          | Technology                   | Constraint                |
+| :---------------- | :--------------------------- | :------------------------ |
+| **Language**      | Python 3.12+                 | **Strict** (use `poetry`) |
+| **CLI Framework** | `click`                      | **Strict**                |
+| **Orchestrator**  | `systemd` (Service & Timers) | **Strict** (Linux only)   |
+| **Communication** | `websockets` (AsyncIO)       | **Strict**                |
+| **OS Target**     | Linux (Systemd-based)        | **Strict**                |
 
-_Note: During the development and testing the ssi-agent should run in a container with systemd init to simulate the environment and eliminate system inconsistencies._
+## 🏗️ Architecture & Mental Models
 
-- Build the development container with `podman build -t ssi-dev .`
-- Run the development container with `podman run -d --name ssi-agent-dev --replace --systemd=always -v "${PWD}:/opt/ssi-agent" ssi-dev`
+The agent operates as a **bridge** between local BASH scripts and the remote Backend.
 
-## Execution Model
+- **Service Scripts**: Simple BASH scripts that output standardized CSV logs. The agent _does not_ execute them directly; it configures `systemd` to run them.
+- **The Daemon**: A background process (`src/agent.py`) that uses `watchdog` to tail log files. It is **event-driven** (file modified -> parse line -> send WebSocket message).
+- **The CLI**: A separate synchronous tool (`src/cli.py`) that manipulates files in `/opt/ssi-agent` and generates systemd unit files.
 
-| Aspect           | Specification                                                |
-| ---------------- | ------------------------------------------------------------ |
-| **Target OS**    | Linux only                                                   |
-| **Orchestrator** | systemd (required dependency)                                |
-| **Daemon**       | Long-running systemd service                                 |
-| **CLI**          | Click-based commands for configuration and manual operations |
-| **Scheduling**   | systemd timers for periodic checks                           |
-| **BASH Scripts** | Managed and executed via systemd                             |
+## ⛔ Non-Negotiables & Constraints
 
-### Critical Rules
+You **MUST NOT** violate these rules:
 
-- **Never assume interactive execution**
-- All output must be machine-parseable or properly logged
-- Daemon mode must be silent except for logging
-- CLI commands may produce human-readable output
+1.  **Linux Only**: Do not add cross-platform abstractions (Windows/Mac). Tying to `systemd` is a feature, not a bug.
+2.  **Unattended Operation**: The daemon must never prompt for user input. It runs in the background.
+3.  **Deterministic**: The system must be predictable. No "AI magic" or self-healing logic beyond simple retries.
 
----
+### Forbidden Patterns
 
-## Resource Constraints
+- ❌ **Background Threads**: Use `asyncio` for I/O or `systemd` timers for scheduling. Avoid spawning `threading.Thread` unless strictly necessary for blocking I/O (like `watchdog`).
+- ❌ **`eval()` / `exec()`**: Security risk.
+- ❌ **Auto-Update**: The agent does not update itself.
 
-| Resource     | Expectation                                     |
-| ------------ | ----------------------------------------------- |
-| **CPU**      | Minimal baseline, burst-only during checks      |
-| **Memory**   | < 50MB typical usage                            |
-| **Disk I/O** | Read-only except logs and config cache          |
-| **Network**  | WebSocket to backend; graceful timeout handling |
+## 📝 Code Style & Philosophy
 
-### Network Behavior
+- **Boring Code**: Clarity over cleverness. Explicit dependencies.
+- **Robustness**: Fail fast on config errors, fail soft (retry) on network errors.
+- **Logging**: Log everything meaningful to stdout/journald.
 
-- Configurable connection timeouts
-- Automatic reconnection with exponential backoff
-- Fail gracefully on transient network issues
-- Log all connection state changes
+## 🔄 Development Workflow
 
----
+> **CRITICAL**: Because this daemon interacts with `systemd`, it requires a specific environment. The way to develop is to use a container with systemd enabled with Podman.
 
-## Failure Philosophy
+### 🐳 Containerized Environment (Podman)
 
-### Fail-Fast Scenarios (Fatal Errors)
+Use the provided `DevContainerfile` to spin up a systemd-enabled environment.
 
-- Invalid or missing configuration
-- Invalid authentication credentials
-- Missing systemd (required dependency)
-- Corrupt persistent state
+1.  **Build Image**:
 
-### Fail-Soft Scenarios (Log and Retry)
+    ```bash
+    podman build -t ssi-dev .
+    ```
 
-- Transient network failures
-- Backend temporarily unavailable
-- Individual check failures
+2.  **Run Container**:
 
-### Logging Requirements
+    ```bash
+    # Mounts current directory to /opt/ssi-agent
+    podman run -d --name ssi-agent-dev \
+      --replace \
+      --systemd=always \
+      -v "${PWD}:/opt/ssi-agent" \
+      ssi-dev
+    ```
 
-| Event Type        | Action                                   |
-| ----------------- | ---------------------------------------- |
-| Status changes    | Always log                               |
-| Connection events | Always log                               |
-| Check results     | Log on failure, configurable for success |
-| Retries           | Log with attempt count                   |
-| Fatal errors      | Log and exit with non-zero code          |
+3.  **Access Shell**:
+    ```bash
+    podman exec -it ssi-agent-dev bash
+    ```
 
----
+### 🧪 common tasks (Inside Container)
 
-## Security & Isolation
+- **Restart Service** (after code changes):
+  ```bash
+  systemctl restart ssi-agent
+  ```
+- **View Logs**:
+  ```bash
+  journalctl -u ssi-agent -f
+  ```
+- **Run Internal Tests**:
+  ```bash
+  poetry run pytest
+  ```
 
-### Allowed Access
+### Commit Guidelines
 
-- Backend API tokens (stored securely, e.g., systemd credentials)
-- Local service check scripts
-- System status information (read-only)
-
-### Must Never
-
-- Store raw passwords or secrets in logs
-- Execute arbitrary remote commands
-- Mutate remote state beyond status reporting
-- Cache sensitive backend responses
-
-### Trust Model
-
-- Agent authenticates to backend with token
-- Agent cannot modify backend configuration
-- Agent is semi-trusted (limited permissions)
-
----
-
-## Update Mechanism
-
-### Current State
-
-- **Update via reinstall** (manual)
-- No auto-update functionality
-
-### Rules
-
-- Auto-update is **not implemented** and **forbidden until explicitly designed**
-- Version checking may be added in future (read-only)
-- Any update mechanism requires human approval
-
----
-
-## Non-Negotiables
-
-These technologies and patterns **must not be replaced** without explicit architectural approval:
-
-| Category        | Requirement      |
-| --------------- | ---------------- |
-| Language        | Python 3.12+     |
-| CLI Framework   | Click            |
-| Real-time       | WebSocket client |
-| Orchestration   | systemd          |
-| Target OS       | Linux only       |
-| Package Manager | Poetry           |
-
----
-
-## Forbidden Patterns
-
-AI agents **must not introduce** the following:
-
-| Pattern                            | Reason                                |
-| ---------------------------------- | ------------------------------------- |
-| Background threads                 | Use systemd timers instead            |
-| `eval()` or `exec()`               | Security risk, unpredictable behavior |
-| Dynamic code execution             | Must be deterministic                 |
-| Auto-updating behavior             | Not designed, security concern        |
-| Cross-platform abstractions        | Linux/systemd only                    |
-| Interactive prompts in daemon mode | Must run unattended                   |
-| Excessive dependencies             | Minimize attack surface               |
-| Silent error recovery              | All failures must be logged           |
-
----
-
-## Change Discipline
-
-| Action                         | Allowed Freely | Requires Approval | Forbidden |
-| ------------------------------ | :------------: | :---------------: | :-------: |
-| Add new check type             |       ✅       |                   |           |
-| Modify logging format          |       ✅       |                   |           |
-| Add new CLI command            |       ✅       |                   |           |
-| Add configuration option       |       ✅       |                   |           |
-| Change WebSocket protocol      |                |        ✅         |           |
-| Add OS dependencies            |                |        ✅         |           |
-| Add network endpoints          |                |        ✅         |           |
-| Implement auto-update          |                |        ✅         |           |
-| Remove systemd dependency      |                |                   |    ❌     |
-| Add Windows/macOS support      |                |                   |    ❌     |
-| Add interactive daemon prompts |                |                   |    ❌     |
-
----
-
-## Commit Message Format
+**Message Format:**
 
 ```
 type(scope): short description
@@ -207,26 +133,6 @@ Optional extended body:
 **Types**: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `perf`  
 **Scopes**: `daemon`, `cli`, `checks`, `websocket`, `config`, `systemd`
 
----
-
-## Code Philosophy
-
-> **Opt for boring, deterministic code.**
-
-- Predictability over cleverness
-- Explicit over implicit
-- Log everything meaningful
-- Fail loudly, recover gracefully
-- Minimal dependencies
-
----
-
-## Explicit Non-Goals
-
-The following are **not responsibilities** of this repository:
-
-- Storing historical status data (that's `ssi-backend`)
-- Displaying status to users (that's `ssi-client-mobile`)
-- Running on non-Linux systems
-- Self-healing or auto-recovery beyond simple retries
-- Complex decision logic about service state
+<!--
+TODO(ssi-agent): Update these scopes after the src/ module refactor is completed. Current scope mapping assumes legacy module layout.
+-->
