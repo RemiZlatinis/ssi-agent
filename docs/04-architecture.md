@@ -8,36 +8,36 @@ The SSI Agent operates as a systemd-native monitoring daemon on Linux systems. I
 2. **Daemon** (`ssi-agent-daemon`) — Long-running process for backend communication
 3. **Service Scripts** — BASH scripts managed by systemd
 
-```                                                               
-                                   ┌─────────────────┐            
-                                   │   SSI Backend   │            
-                                   │   (WebSocket)   │            
-                                   └────────▲────────┘            
-                                            │                     
-┌───────────────────────────────────────────┼────────────────────┐
-│                   Linux System            │                    │
-│                                           │                    │
-│  ┌──────────────┐      ┌──────────────────┴─────────────────┐  │
-│  │     User     │      │          SSI Agent Daemon          │  │
-│  │   (ssi CLI)  │      │  - Watches log files               │  │
-│  └──────┬───────┘      │  - Sends status via WebSocket      │  │
-│         │              │  - Handles reconnection            │  │
-│         │              └──────────────────▲─────────────────┘  │
-│         │                                 │                    │
-│         ▼                                 │ (reads)            │
-│  ┌──────────────┐      ┌──────────────────┴─────────────────┐  │
-│  │   systemd    │      │        Log Files                   │  │
-│  │   timers     ├──────►  /var/log/ssi-agent/<service>.log  │  │
-│  └──────────────┘      └──────────────────▲─────────────────┘  │
-│         │                                 │ (writes)           │
-│         ▼                                 │                    │
-│  ┌──────────────┐      ┌──────────────────┴─────────────────┐  │
-│  │   systemd    │──────│        Service Scripts             │  │
-│  │   services   │      │  /opt/ssi-agent/scripts/*.bash     │  │
-│  └──────────────┘      └────────────────────────────────────┘  │
-│                                                                │
-└────────────────────────────────────────────────────────────────┘
-```                                                               
+```
+                                         ┌─────────────────┐            
+                                         │   SSI Backend   │            
+                                         │   (WebSocket)   │            
+                                         └────────▲────────┘            
+                                                  │                     
+┌─────────────────────────────────────────────────┼──────────────────────────────┐
+│                   Linux System                  │                              │
+│                                                 │                              │
+│  ┌──────────────┐      ┌────────────────────────┴───────────────────────────┐  │
+│  │     User     │      │                 SSI Agent Daemon                   │  │
+│  │   (ssi CLI)  │      │  - Watches log files                               │  │
+│  └──────┬───────┘      │  - Sends status via WebSocket                      │  │
+│         │              │  - Handles reconnection                            │  │
+│         │              └────────────────────────▲───────────────────────────┘  │
+│         │                                       │                              │
+│         ▼                                       │ (reads)                      │
+│  ┌──────────────┐      ┌────────────────────────┴───────────────────────────┐  │
+│  │   systemd    │      │                    Log Files                       │  │
+│  │   timers     ├──────►          /var/log/ssi-agent/<service>.log          │  │
+│  └──────────────┘      └────────────────────────▲───────────────────────────┘  │
+│         │                                       │ (writes)                     │
+│         ▼                                       │                              │
+│  ┌──────────────┐      ┌────────────────────────┴───────────────────────────┐  │
+│  │   systemd    │──────│                 Service Scripts                    │  │
+│  │   services   │      │ /opt/ssi-agent/.enabled-service-scripts/*.bash     │  │
+│  └──────────────┘      └────────────────────────────────────────────────────┘  │
+│                                                                                │
+└────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ## Execution Model
 
@@ -94,7 +94,7 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash -c '/opt/ssi-agent/scripts/api-health.bash'
+ExecStart=/bin/bash -c '/opt/ssi-agent/.enabled-service-scripts/api-health.bash'
 TimeoutSec=10
 StandardOutput=append:/var/log/ssi-agent/api_health.log
 StandardError=append:/var/log/ssi-agent/api_health.log
@@ -124,7 +124,7 @@ WantedBy=timers.target
 │       ├── ssi-agent          # CLI entry point
 │       └── ssi-agent-daemon   # Daemon entry point
 ├── bin/                       # Additional scripts
-└── scripts/                   # Installed service scripts
+└── .enabled-service-scripts/  # Enabled service scripts
     ├── api-health.bash
     ├── system-updates.bash
     └── ...

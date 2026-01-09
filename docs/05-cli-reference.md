@@ -40,7 +40,7 @@ ssi add ./system-check.bash --update
 
 1. Parses the script to extract metadata (name, description, schedule, etc.)
 2. Validates the script structure
-3. Copies the script to `/opt/ssi-agent/scripts/`
+3. Copies the script to `/opt/ssi-agent/.enabled-service-scripts/`
 4. Creates systemd service and timer units
 5. Enables and starts the timer
 
@@ -73,13 +73,13 @@ ssi remove broken_service --force
 
 1. Disables the systemd timer
 2. Removes the service and timer unit files
-3. Removes the script from `/opt/ssi-agent/scripts/`
+3. Removes the script from `/opt/ssi-agent/.enabled-service-scripts/`
 
 ---
 
 ### `ssi list`
 
-List all installed services.
+List all enabled services.
 
 ```bash
 ssi list

@@ -104,7 +104,7 @@ Open your SSI mobile app — your new service should appear with its current sta
 ## What Just Happened?
 
 1. **The agent** registered with the backend and received an authentication token
-2. **Your service script** was copied to `/opt/ssi-agent/scripts/`
+2. **Your service script** was copied to `/opt/ssi-agent/.enabled-service-scripts/`
 3. **Systemd timer** was created to run the script every 5 minutes
 4. **Systemd service** was created to execute the script
 5. **The daemon** is watching the log file and sending updates to the backend

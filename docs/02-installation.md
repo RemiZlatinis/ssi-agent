@@ -43,7 +43,10 @@ sudo ./install.sh
 1. **Checks system requirements** — Verifies Python, systemd, and dependencies
 2. **Creates system user** — `ssi-agent` user for running the daemon
 3. **Creates directories**:
-   - `/opt/ssi-agent/` — Application files and scripts
+   - `/opt/ssi-agent/` — Application files
+   - `/opt/ssi-agent/venv/` — Python virtual environment
+   - `/opt/ssi-agent/bin/` — Entry point scripts
+   - `/opt/ssi-agent/scripts/` — Enabled service-scripts
    - `/etc/ssi-agent/` — Configuration files
    - `/var/log/ssi-agent/` — Log files
 4. **Sets up Python virtual environment** — Isolated Python environment
@@ -79,15 +82,15 @@ After installation, the following directories are created:
 
 ```
 /opt/ssi-agent/
-├── venv/                  # Python virtual environment
-├── bin/                   # Entry point scripts
-└── scripts/               # Installed service scripts
+├── venv/                     # Python virtual environment
+├── bin/                      # Entry point scripts
+└── .enabled-service-scripts/ # Enabled service scripts
 
 /etc/ssi-agent/
-└── config.json            # Agent configuration
+└── config.json               # Agent configuration
 
 /var/log/ssi-agent/
-└── <service_id>.log       # Service log files
+└── <service_id>.log          # Service log files
 ```
 
 ## Configuration

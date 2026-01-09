@@ -7,7 +7,7 @@ PREFIX = "ssi_"  # Prefix for systemd services
 
 # Directories
 SERVICES_DIR = Path("/etc/systemd/system")
-SCRIPTS_DIR = Path(f"/opt/{APP_NAME}")
+SCRIPTS_DIR = Path(f"/opt/{APP_NAME}/.enabled-service-scripts")
 LOG_DIR = Path(f"/var/log/{APP_NAME}")
 CONFIG_DIR = Path(f"/etc/{APP_NAME}")
 
