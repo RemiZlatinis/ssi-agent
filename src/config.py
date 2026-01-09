@@ -96,7 +96,7 @@ def get_uri(
             UriTemplates = {
                 "websocket": f"ws{s}://{host}/ws/agent/",
                 "unregister": f"http{s}://{host}/api/agents/unregister/",
-                "whoami": f"http{s}://{s}/api/agents/me/",
+                "whoami": f"http{s}://{host}/api/agents/me/",
                 "initiate_registration": f"http{s}://{host}/api/agents/register/initiate/",
                 "registration_status": f"http{s}://{host}/api/agents/register/status/",
             }
