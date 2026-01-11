@@ -1,5 +1,5 @@
 [Unit]
-Description=Service Status Indicator Agent
+Description=Service Status Indicator (SSI) - Agent
 After=network.target
 
 [Service]
