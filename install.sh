@@ -190,22 +190,9 @@ create_symlink() {
 install_service_file() {
     print_status "Installing systemd service file..."
 
-    # Get the path to the installed package
-    PACKAGE_PATH=$(python3 -c "import src; print(src.__file__.replace('__init__.py', ''))")
-    TEMPLATE_PATH="$PACKAGE_PATH/templates/agent.service"
-
-    if [[ ! -f "$TEMPLATE_PATH" ]]; then
-        print_error "Service template not found at: $TEMPLATE_PATH"
-        exit 1
-    fi
-
-    # Copy and customize service file
-    cp "$TEMPLATE_PATH" "/etc/systemd/system/$SERVICE_NAME.service"
-
-    # Update paths in service file if needed
-    sed -i "s|User=.*|User=$SERVICE_USER|" "/etc/systemd/system/$SERVICE_NAME.service"
-    sed -i "s|Group=.*|Group=$SERVICE_USER|" "/etc/systemd/system/$SERVICE_NAME.service"
-    sed -i "s|ExecStart=.*|ExecStart=$HOME/venv/bin/ssi-agent-daemon|" "/etc/systemd/system/$SERVICE_NAME.service"
+    SSI_AGENT_SERVICE_UNIT="/opt/ssi-agent/deploy/ssi-agent.service"
+    TARGET="/etc/systemd/system/"
+    cp "$SSI_AGENT_SERVICE_UNIT" "$TARGET"    
 }
 
 setup_service() {
