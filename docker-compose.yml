@@ -1,0 +1,15 @@
+services:
+  dev:
+    build: .
+    volumes:
+      # Working directory, and the enabled service scripts.
+      - .:/opt/ssi-agent/
+
+      # Configurations (config.json), the ssi-agent.service,
+      # and systemd's units for enabled services
+      - ssi-agent-etc:/etc/ssi-agent/
+    env_file:
+      - .env
+
+volumes:
+  ssi-agent-etc:
