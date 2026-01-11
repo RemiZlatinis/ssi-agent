@@ -209,6 +209,14 @@ setup_service() {
     fi
 }
 
+install_logrotate() {
+    print_status "Installing logrotate configuration..."
+    
+    LOGROTATE_FILE="/opt/ssi-agent/deploy/logrotate.conf"
+    TARGET="/etc/logrotate.d/"
+    cp "$LOGROTATE_FILE" "$TARGET"
+}
+
 create_config() {
     print_status "Checking for configuration file..."
 
@@ -381,6 +389,7 @@ main() {
         create_virtual_environment
         create_symlink
         install_service_file
+        install_logrotate
         create_config
         setup_service
         cleanup
