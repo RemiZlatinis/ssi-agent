@@ -174,6 +174,12 @@ create_virtual_environment() {
 
     # Ensure ownership is correct on every run
     chown -R "$SERVICE_USER:$SERVICE_USER" "$HOME/venv"
+
+    # Make it Editable install if EDITABLE_INSTALL is 1 (True)
+    if [[ "${EDITABLE_INSTALL:-0}" == 1 ]]; then
+        print_status "Installing agent in editable mode (DEVELOPMENT MODE)..."
+        "$VENV_PIP" install -e .
+    fi
 }
 
 create_symlink() {
