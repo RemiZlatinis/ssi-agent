@@ -18,13 +18,13 @@ The system flows data from the Edge (Servers/Agents) to the Core (Backend) and f
 
 **The Three-Piece Puzzle:**
 
-1.  **The Agent (Worker)**:
+1. **The Agent (Worker)**:
     - **This Repository**. Installed on Linux/Systemd.
     - Executes service scripts, captures standardized CSV logs, and streams them to the Backend.
-2.  **The Backend (Brain)**:
+2. **The Backend (Brain)**:
     - **Closed Source**.
     - Central hub that receives updates from Agents and pushes real-time notifications to Clients.
-3.  **The Client (Status Board)**:
+3. **The Client (Status Board)**:
     - Mobile/Web Interface (React Native).
     - Connects to Backend to display status.
 
@@ -57,9 +57,9 @@ The agent operates as a **bridge** between local BASH scripts and the remote Bac
 
 You **MUST NOT** violate these rules:
 
-1.  **Linux Only**: Do not add cross-platform abstractions (Windows/Mac). Tying to `systemd` is a feature, not a bug.
-2.  **Unattended Operation**: The daemon must never prompt for user input. It runs in the background.
-3.  **Deterministic**: The system must be predictable. No "AI magic" or self-healing logic beyond simple retries.
+1. **Linux Only**: Do not add cross-platform abstractions (Windows/Mac). Tying to `systemd` is a feature, not a bug.
+2. **Unattended Operation**: The daemon must never prompt for user input. It runs in the background.
+3. **Deterministic**: The system must be predictable. No "AI magic" or self-healing logic beyond simple retries.
 
 ### Forbidden Patterns
 
@@ -81,13 +81,13 @@ You **MUST NOT** violate these rules:
 
 Use the provided `DevContainerfile` to spin up a systemd-enabled environment.
 
-1.  **Build Image**:
+1. **Build Image**:
 
     ```bash
     podman build -t ssi-dev .
     ```
 
-2.  **Run Container**:
+2. **Run Container**:
 
     ```bash
     # Mounts current directory to /opt/ssi-agent
@@ -98,7 +98,8 @@ Use the provided `DevContainerfile` to spin up a systemd-enabled environment.
       ssi-dev
     ```
 
-3.  **Access Shell**:
+3. **Access Shell**:
+
     ```bash
     podman exec -it ssi-agent-dev bash
     ```
@@ -106,14 +107,19 @@ Use the provided `DevContainerfile` to spin up a systemd-enabled environment.
 ### 🧪 common tasks (Inside Container)
 
 - **Restart Service** (after code changes):
+
   ```bash
   systemctl restart ssi-agent
   ```
+
 - **View Logs**:
+
   ```bash
   journalctl -u ssi-agent -f
   ```
+
 - **Run Internal Tests**:
+
   ```bash
   poetry run pytest
   ```
