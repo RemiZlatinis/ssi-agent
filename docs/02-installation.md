@@ -84,7 +84,7 @@ After installation, the following directories are created:
 /opt/ssi-agent/
 ├── venv/                     # Python virtual environment
 ├── bin/                      # Entry point scripts
-└── .enabled-service-scripts/ # Enabled service scripts
+└── .installed-service-scripts/ # Enabled service scripts
 
 /etc/ssi-agent/
 └── config.json               # Agent configuration

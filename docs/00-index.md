@@ -22,7 +22,7 @@ Welcome to the Service Status Indicator (SSI) Agent documentation.
 - [Block Structure](service-scripts/01-structure.md) — Anatomy of a service script
 - [Manifest Reference](service-scripts/02-manifest-reference.md) — Manifest fields
 - [Status Codes](service-scripts/03-status-codes.md) — Output format and status codes
-- [Examples](service-scripts/04-examples.md) — Walkthrough examples
+- [Library](service-scripts/04-library.md) — Production-ready scripts
 - [Best Practices](service-scripts/05-best-practices.md) — Tips and recommendations
 
 ### Reference
@@ -35,12 +35,12 @@ Welcome to the Service Status Indicator (SSI) Agent documentation.
 
 ## Quick Links
 
-| Task           | Command                 |
-| -------------- | ----------------------- |
-| Register agent | `ssi register`          |
-| Add a service  | `ssi add <script.bash>` |
-| List services  | `ssi list`              |
-| Check status   | `ssi status`            |
+| Task           | Command                         |
+| -------------- | ------------------------------- |
+| Register agent | `ssi auth register`             |
+| Add a service  | `ssi service add <script.bash>` |
+| List services  | `ssi service list`              |
+| Check status   | `ssi service status`            |
 
 ---
 

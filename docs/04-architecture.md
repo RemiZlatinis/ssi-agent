@@ -9,11 +9,11 @@ The SSI Agent operates as a systemd-native monitoring daemon on Linux systems. I
 3. **Service Scripts** — BASH scripts managed by systemd
 
 ```
-                                         ┌─────────────────┐            
-                                         │   SSI Backend   │            
-                                         │   (WebSocket)   │            
-                                         └────────▲────────┘            
-                                                  │                     
+                                         ┌─────────────────┐
+                                         │   SSI Backend   │
+                                         │   (WebSocket)   │
+                                         └────────▲────────┘
+                                                  │
 ┌─────────────────────────────────────────────────┼──────────────────────────────┐
 │                   Linux System                  │                              │
 │                                                 │                              │
@@ -33,7 +33,7 @@ The SSI Agent operates as a systemd-native monitoring daemon on Linux systems. I
 │         ▼                                       │                              │
 │  ┌──────────────┐      ┌────────────────────────┴───────────────────────────┐  │
 │  │   systemd    │──────│                 Service Scripts                    │  │
-│  │   services   │      │ /opt/ssi-agent/.enabled-service-scripts/*.bash     │  │
+│  │   services   │      │ /opt/ssi-agent/.installed-service-scripts/*.bash     │  │
 │  └──────────────┘      └────────────────────────────────────────────────────┘  │
 │                                                                                │
 └────────────────────────────────────────────────────────────────────────────────┘
@@ -81,11 +81,11 @@ For a service with ID `api_health`, the following files are created:
 
 ```
 /etc/systemd/system/
-├── ssi_api_health.service   # Executes the script
-└── ssi_api_health.timer     # Schedules execution
+├── ssi-api-health.service   # Executes the script
+└── ssi-api-health.timer     # Schedules execution
 ```
 
-**Service Unit** (`ssi_api_health.service`):
+**Service Unit** (`ssi-api-health.service`):
 
 ```ini
 [Unit]
@@ -94,13 +94,13 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash -c '/opt/ssi-agent/.enabled-service-scripts/api-health.bash'
+ExecStart=/bin/bash -c '/opt/ssi-agent/.installed-service-scripts/api-health.bash'
 TimeoutSec=10
-StandardOutput=append:/var/log/ssi-agent/api_health.log
-StandardError=append:/var/log/ssi-agent/api_health.log
+StandardOutput=append:/var/log/ssi-agent/api-health.log
+StandardError=append:/var/log/ssi-agent/api-health.log
 ```
 
-**Timer Unit** (`ssi_api_health.timer`):
+**Timer Unit** (`ssi-api-health.timer`):
 
 ```ini
 [Unit]
@@ -124,7 +124,7 @@ WantedBy=timers.target
 │       ├── ssi-agent          # CLI entry point
 │       └── ssi-agent-daemon   # Daemon entry point
 ├── bin/                       # Additional scripts
-└── .enabled-service-scripts/  # Enabled service scripts
+└── .installed-service-scripts/  # Enabled service scripts
     ├── api-health.bash
     ├── system-updates.bash
     └── ...
@@ -140,8 +140,8 @@ WantedBy=timers.target
 
 /etc/systemd/system/
 ├── ssi-agent.service          # Agent daemon service
-├── ssi_api_health.service     # Service script unit
-├── ssi_api_health.timer       # Service timer unit
+├── ssi-api-health.service     # Service script unit
+├── ssi-api-health.timer       # Service timer unit
 └── ...
 ```
 
@@ -162,7 +162,7 @@ Script Output → Log File → Daemon (watcher) → WebSocket → Backend
 2. **systemd captures** output to log file:
 
    ```
-   /var/log/ssi-agent/api_health.log
+   /var/log/ssi-agent/api-health.log
    ```
 
 3. **Daemon detects** file change and parses the new line
@@ -171,7 +171,7 @@ Script Output → Log File → Daemon (watcher) → WebSocket → Backend
 
    ```json
    {
-     "service_id": "api_health",
+     "service_id": "api-health",
      "status": "OK",
      "message": "API is healthy",
      "timestamp": "2024-01-15T10:30:00"

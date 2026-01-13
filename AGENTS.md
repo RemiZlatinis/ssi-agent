@@ -19,14 +19,14 @@ The system flows data from the Edge (Servers/Agents) to the Core (Backend) and f
 **The Three-Piece Puzzle:**
 
 1. **The Agent (Worker)**:
-    - **This Repository**. Installed on Linux/Systemd.
-    - Executes service scripts, captures standardized CSV logs, and streams them to the Backend.
+   - **This Repository**. Installed on Linux/Systemd.
+   - Executes service scripts, captures standardized CSV logs, and streams them to the Backend.
 2. **The Backend (Brain)**:
-    - **Closed Source**.
-    - Central hub that receives updates from Agents and pushes real-time notifications to Clients.
+   - **Closed Source**.
+   - Central hub that receives updates from Agents and pushes real-time notifications to Clients.
 3. **The Client (Status Board)**:
-    - Mobile/Web Interface (React Native).
-    - Connects to Backend to display status.
+   - Mobile/Web Interface (React Native).
+   - Connects to Backend to display status.
 
 ### Core Responsibilities (Agent)
 
@@ -38,20 +38,19 @@ The system flows data from the Edge (Servers/Agents) to the Core (Backend) and f
 ## 🛠️ Tech Stack & Environment
 
 | Category          | Technology                   | Constraint                |
-| :---------------- | :--------------------------- | :------------------------ |
+| :---------------- | :--------------------------- | :------------------------ | ---------------------------------- |
 | **Language**      | Python 3.12+                 | **Strict** (use `poetry`) |
 | **CLI Framework** | `click`                      | **Strict**                |
+| **File Watching** | `watchdog`                   | **Strict**                |
 | **Orchestrator**  | `systemd` (Service & Timers) | **Strict** (Linux only)   |
 | **Communication** | `websockets` (AsyncIO)       | **Strict**                |
-| **OS Target**     | Linux (Systemd-based)        | **Strict**                |
-
-## 🏗️ Architecture & Mental Models
+| **OS Target**     | Linux (Systemd-based)        | **Strict**                | ## 🏗️ Architecture & Mental Models |
 
 The agent operates as a **bridge** between local BASH scripts and the remote Backend.
 
 - **Service Scripts**: Simple BASH scripts that output standardized CSV logs. The agent _does not_ execute them directly; it configures `systemd` to run them.
-- **The Daemon**: A background process (`src/agent.py`) that uses `watchdog` to tail log files. It is **event-driven** (file modified -> parse line -> send WebSocket message).
-- **The CLI**: A separate synchronous tool (`src/cli.py`) that manipulates files in `/opt/ssi-agent` and generates systemd unit files.
+- **The Daemon**: A background process (`src/ssi_agent/daemon.py`) that uses `watchdog` to tail log files. It is **event-driven** (file modified -> parse line -> send WebSocket message).
+- **The CLI**: A separate synchronous tool (`src/ssi_agent/cli/`) that manipulates files in `/opt/ssi-agent` and generates systemd unit files.
 
 ## ⛔ Non-Negotiables & Constraints
 
@@ -81,47 +80,53 @@ You **MUST NOT** violate these rules:
 
 Use the provided `DevContainerfile` to spin up a systemd-enabled environment.
 
-1. **Build Image**:
+1. **Start (and build) the development container**:
 
-    ```bash
-    podman build -t ssi-dev .
-    ```
+   ```bash
+   podman compose up --build -d
+   ```
 
-2. **Run Container**:
+2. **Access Shell**:
 
-    ```bash
-    # Mounts current directory to /opt/ssi-agent
-    podman run -d --name ssi-agent-dev \
-      --replace \
-      --systemd=always \
-      -v "${PWD}:/opt/ssi-agent" \
-      ssi-dev
-    ```
+   ```bash
+   podman exec -it ssi-agent-dev-1 bash
+   ```
 
-3. **Access Shell**:
+3. **Initialize the development setup**:
 
-    ```bash
-    podman exec -it ssi-agent-dev bash
-    ```
+   _The `install.sh` script must run once to initialize the installation of the package in the container. It will setup the needed systemd unit for the daemon, the ssi user and group, and the log directory. It's also set the package to "editable/development mode" to allow immediate code changes._
+
+   ```bash
+   ./install.sh
+   ```
+
+4. **Stop the container**:
+
+   ```bash
+   podman compose down
+
+   # Or remove the data
+   podman compose down --volumes
+   ```
 
 ### 🧪 common tasks (Inside Container)
 
-- **Restart Service** (after code changes):
+- **Restart Service** (after changes on the daemon):
 
   ```bash
   systemctl restart ssi-agent
   ```
 
-- **View Logs**:
+- **View the Daemon Logs**:
 
   ```bash
-  journalctl -u ssi-agent -f
+  ssi debug logs -f
   ```
 
-- **Run Internal Tests**:
+- **View Logs for a Service Script**:
 
   ```bash
-  poetry run pytest
+  tail -f /var/log/ssi-agent/service-name.log
   ```
 
 ### Commit Guidelines
@@ -137,8 +142,4 @@ Optional extended body:
 ```
 
 **Types**: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `perf`  
-**Scopes**: `daemon`, `cli`, `checks`, `websocket`, `config`, `systemd`
-
-<!--
-TODO(ssi-agent): Update these scopes after the src/ module refactor is completed. Current scope mapping assumes legacy module layout.
--->
+**Scopes**: `daemon`, `cli`, `library`, `websocket`, `config`, `systemd`

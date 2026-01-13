@@ -82,9 +82,9 @@
           "order": 3
         },
         {
-          "id": "examples",
-          "title": "Examples",
-          "file": "service-scripts/04-examples.md",
+          "id": "library",
+          "title": "Library",
+          "file": "service-scripts/04-library.md",
           "order": 4
         },
         {

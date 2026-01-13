@@ -29,7 +29,7 @@ The human-readable name of the service.
 **What it's used for:**
 
 - Display name in the mobile app
-- Deriving the service ID (name → snake_case)
+- Deriving the service ID (name → kebab-case)
 
 **Examples:**
 
@@ -223,19 +223,19 @@ ValueError: Invalid schedule format...
 The service ID is automatically derived from the `name` field:
 
 1. Convert to lowercase
-2. Replace spaces with underscores
+2. Replace spaces with hyphens
 
 **Examples:**
 
 | Name                  | Service ID              |
 | --------------------- | ----------------------- |
-| API Health            | `api_health`            |
-| ZFS Zpool Health      | `zfs_zpool_health`      |
-| System Updates        | `system_updates`        |
-| Daily Backup Verifier | `daily_backup_verifier` |
+| API Health            | `api-health`            |
+| ZFS Zpool Health      | `zfs-zpool-health`      |
+| System Updates        | `system-updates`        |
+| Daily Backup Verifier | `daily-backup-verifier` |
 
 The service ID is used for:
 
-- systemd unit file names (`ssi_api_health.service`)
-- Log file names (`api_health.log`)
-- CLI commands (`ssi status api_health`)
+- systemd unit file names (`ssi-api-health.service`)
+- Log file names (`api-health.log`)
+- CLI commands (`ssi service status api-health`)

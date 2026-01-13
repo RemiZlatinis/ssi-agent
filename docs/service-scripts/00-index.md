@@ -100,5 +100,5 @@ See [Status Codes](03-status-codes.md) for the complete reference.
 - [Block Structure](01-structure.md) — Detailed breakdown of each block
 - [Manifest Reference](02-manifest-reference.md) — Manifest field specifications
 - [Status Codes](03-status-codes.md) — Output format and status values
-- [Examples](04-examples.md) — Walkthrough of real service scripts
+- [Library](04-library.md) — Walkthrough of real service scripts
 - [Best Practices](05-best-practices.md) — Tips for writing reliable scripts

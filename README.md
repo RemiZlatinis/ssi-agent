@@ -49,7 +49,7 @@ The agent is managed via the `ssi` CLI tool.
 Connect your agent to the backend:
 
 ```bash
-ssi register
+ssi auth register
 # Follow the on-screen instructions to enter the code in your mobile app
 ```
 
@@ -57,7 +57,7 @@ ssi register
 Turn any BASH script into a monitored service:
 
 ```bash
-ssi add /path/to/my-script.bash
+ssi service add /path/to/my-script.bash
 ```
 
 > **Note**: Your script must follow specific output conventions (standardized CSV logs) to be parsed correctly. See the [Service Script Documentation](./docs/service-scripts/00-index.md).
@@ -66,15 +66,15 @@ ssi add /path/to/my-script.bash
 See what your agent is doing:
 
 ```bash
-ssi status
+ssi service status
 # OR for detailed logs
-ssi status --details
+ssi service status --details
 ```
 
 **4. Remove a Service**
 
 ```bash
-ssi remove my_service_id
+ssi service remove my-service-id
 ```
 
 ## 📚 Documentation
