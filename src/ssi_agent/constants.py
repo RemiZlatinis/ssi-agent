@@ -3,11 +3,11 @@
 from pathlib import Path
 
 APP_NAME = "ssi-agent"
-PREFIX = "ssi_"  # Prefix for systemd services
+SSI_AGENT_UNIT_PREFIX = "ssi-"  # Prefix for systemd services
 
 # Directories
-SERVICES_DIR = Path("/etc/systemd/system")
-SCRIPTS_DIR = Path(f"/opt/{APP_NAME}/.enabled-service-scripts")
+SYSTEM_SERVICES_DIR = Path("/etc/systemd/system")
+INSTALLED_SERVICE_SCRIPTS_DIR = Path(f"/opt/{APP_NAME}/.installed-service-scripts")
 LOG_DIR = Path(f"/var/log/{APP_NAME}")
 CONFIG_DIR = Path(f"/etc/{APP_NAME}")
 

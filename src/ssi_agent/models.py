@@ -2,20 +2,14 @@
 
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Status(Enum):
     """
     An enumeration representing the possible statuses of a service.
-
-    Attributes:
-        OK: The service is operating normally.
-        UPDATE: The service has updates available.
-        WARNING: The service is experiencing issues but is still operational.
-        FAILURE: The service has failed.
-        ERROR: The service is in an error state.
     """
 
     OK = "OK"
@@ -41,20 +35,20 @@ class ServiceInfo(BaseModel):
     schedule: str
 
 
-class AgentHelloEvent(BaseModel):
-    event: str = "agent_hello"
-    agent_key: str
-    services: list[ServiceInfo]
+class Service(BaseModel):
+    """
+    Internal data model for a service, including local filesystem paths
+    and execution settings.
+    """
 
-
-class ServiceAddedEvent(BaseModel):
-    event: str = "service_added"
-    service: ServiceInfo
-
-
-class ServiceRemovedEvent(BaseModel):
-    event: str = "service_removed"
-    service_id: str
+    id: str
+    name: str
+    description: str
+    version: str
+    schedule: str
+    script: Path
+    timeout: int = Field(default=20, ge=1)
+    is_enabled: bool = False  # Is the systemd timer active?
 
 
 class StatusUpdate(BaseModel):
@@ -66,8 +60,3 @@ class StatusUpdate(BaseModel):
     timestamp: datetime | None
     status: Status | None
     message: str
-
-
-class StatusUpdateEvent(BaseModel):
-    event: str = "status_update"
-    update: StatusUpdate

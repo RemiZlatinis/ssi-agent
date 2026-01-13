@@ -14,8 +14,8 @@ NC='\033[0m' # No Color
 # Configuration
 SERVICE_NAME="ssi-agent"
 SERVICE_USER="ssi-agent"
-HOME="/opt/ssi-agent/"
-SERVICE_SCRIPTS_DIR="/opt/ssi-agent/.enabled-service-scripts"
+INSTALL_DIR="/opt/ssi-agent"
+SERVICE_SCRIPTS_DIR="$INSTALL_DIR/.installed-service-scripts"
 CONFIG_DIR="/etc/ssi-agent"
 LOG_DIR="/var/log/ssi-agent"
 BACKEND_URL=${BACKEND_URL:-"https://api.service-status-indicator.com/"}
@@ -125,7 +125,7 @@ check_system_requirements() {
 create_user() {
     if ! id "$SERVICE_USER" &>/dev/null; then
         print_status "Creating system user: $SERVICE_USER"
-        useradd --system --shell /bin/false --home-dir "$HOME" --create-home "$SERVICE_USER"
+        useradd --system --shell /bin/false --home-dir "$INSTALL_DIR" --create-home "$SERVICE_USER"
     else
         print_status "User $SERVICE_USER already exists"
     fi
@@ -155,15 +155,15 @@ create_directories() {
 create_virtual_environment() {
     print_status "Setting up Python virtual environment..."
 
-    if [[ ! -d "$HOME/venv" ]]; then
+    if [[ ! -d "$INSTALL_DIR/venv" ]]; then
         print_status "Creating new virtual environment..."
-        python3 -m venv "$HOME/venv"
+        python3 -m venv "$INSTALL_DIR/venv"
     else
         print_status "Virtual environment found. Updating if necessary."
     fi
 
     # Define path to venv pip for clarity and to avoid sourcing the activate script
-    VENV_PIP="$HOME/venv/bin/pip"
+    VENV_PIP="$INSTALL_DIR/venv/bin/pip"
 
     print_status "Upgrading pip in virtual environment..."
     "$VENV_PIP" install --upgrade pip
@@ -173,7 +173,7 @@ create_virtual_environment() {
     "$VENV_PIP" install --upgrade .
 
     # Ensure ownership is correct on every run
-    chown -R "$SERVICE_USER:$SERVICE_USER" "$HOME/venv"
+    chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/venv"
 
     # Make it Editable install if EDITABLE_INSTALL is 1 (True)
     if [[ "${EDITABLE_INSTALL:-0}" == 1 ]]; then
@@ -184,13 +184,13 @@ create_virtual_environment() {
 
 create_symlink() {
     print_status "Creating symlink for ssi-agent CLI..."
-    ln -sf "$HOME/venv/bin/ssi-agent" "/usr/local/bin/ssi"
+    ln -sf "$INSTALL_DIR/venv/bin/ssi-agent" "/usr/local/bin/ssi"
 }
 
 install_service_file() {
     print_status "Installing systemd service file..."
 
-    SSI_AGENT_SERVICE_UNIT="/opt/ssi-agent/deploy/ssi-agent.service"
+    SSI_AGENT_SERVICE_UNIT="$INSTALL_DIR/deploy/ssi-agent.service"
     TARGET="/etc/systemd/system/"
     cp "$SSI_AGENT_SERVICE_UNIT" "$TARGET"    
 }
@@ -212,7 +212,7 @@ setup_service() {
 install_logrotate() {
     print_status "Installing logrotate configuration..."
     
-    LOGROTATE_FILE="/opt/ssi-agent/deploy/logrotate.conf"
+    LOGROTATE_FILE="$INSTALL_DIR/deploy/logrotate.conf"
     TARGET="/etc/logrotate.d/"
     cp "$LOGROTATE_FILE" "$TARGET"
 }
@@ -290,17 +290,17 @@ uninstall_agent() {
     fi
 
     # Remove virtual environment
-    if [[ -d "$HOME/venv" ]]; then
+    if [[ -d "$INSTALL_DIR/venv" ]]; then
         print_warning "Removing virtual environment..."
-        rm -rf "$HOME/venv"
+        rm -rf "$INSTALL_DIR/venv"
     else
         print_status "Virtual environment not found, skipping"
     fi
 
     # Remove application directory
-    if [[ -d "$HOME" ]]; then
+    if [[ -d "$INSTALL_DIR" ]]; then
         print_warning "Removing application directory..."
-        rm -rf "$HOME"
+        rm -rf "$INSTALL_DIR"
     else
         print_status "Application directory not found, skipping"
     fi
@@ -340,7 +340,7 @@ uninstall_agent() {
     echo ""
     echo "The following may have been removed:"
     echo "  - Systemd service: $SERVICE_NAME"
-    echo "  - Application directory: $HOME"
+    echo "  - Application directory: $INSTALL_DIR"
     echo "  - Configurations: $CONFIG_DIR"
     echo "  - System user: $SERVICE_USER"
     echo "  - Virtual environment and dependencies"
