@@ -173,7 +173,9 @@ create_virtual_environment() {
     "$VENV_PIP" install --upgrade .
 
     # Ensure ownership is correct on every run
-    chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/venv"
+    # Set group to ADMIN_GROUP and restrict perms so only owner/group can execute
+    chown -R "$SERVICE_USER:$ADMIN_GROUP" "$INSTALL_DIR/venv"
+    chmod -R u=rwX,g=rX,o= "$INSTALL_DIR/venv"
 
     # Make it Editable install if EDITABLE_INSTALL is 1 (True)
     if [[ "${EDITABLE_INSTALL:-0}" == 1 ]]; then
@@ -190,7 +192,7 @@ create_symlink() {
 install_service_file() {
     print_status "Installing systemd service file..."
 
-    SSI_AGENT_SERVICE_UNIT="$INSTALL_DIR/deploy/ssi-agent.service"
+    SSI_AGENT_SERVICE_UNIT="$INSTALL_DIR/deploy/ssi-agent.service" 
     TARGET="/etc/systemd/system/"
     cp "$SSI_AGENT_SERVICE_UNIT" "$TARGET"    
 }
