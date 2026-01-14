@@ -25,6 +25,11 @@ RUN apt-get update && apt-get install -y \
 # Setup a working directory
 WORKDIR /opt/ssi-agent
 
+# Create a non-root admin user for development
+RUN useradd -m -s /bin/bash admin \
+    && usermod -aG sudo admin \
+    && echo "admin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
 # cleanup systemd services that might conflict with containerization
 # (Standard practice for systemd inside containers to avoid mounting errors)
 RUN cd /lib/systemd/system/sysinit.target.wants/ \
@@ -36,6 +41,11 @@ RUN cd /lib/systemd/system/sysinit.target.wants/ \
     && rm -f /lib/systemd/system/sockets.target.wants/*initctl* \
     && rm -f /lib/systemd/system/basic.target.wants/* \
     && rm -f /lib/systemd/system/anaconda.target.wants/*
+
+# Configure root's bash to automatically switch to 'admin' for interactive sessions.
+# This ensures 'podman exec -it ... bash' lands you as admin,
+# while the container itself runs as root (PID 1) for systemd.
+RUN echo 'if [[ $- == *i* ]]; then exec su admin; fi' >> /root/.bashrc
 
 # Set the default command to start systemd
 CMD ["/sbin/init"]

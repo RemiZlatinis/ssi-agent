@@ -97,7 +97,7 @@ Use the provided `DevContainerfile` to spin up a systemd-enabled environment.
    _The `install.sh` script must run once to initialize the installation of the package in the container. It will setup the needed systemd unit for the daemon, the ssi user and group, and the log directory. It's also set the package to "editable/development mode" to allow immediate code changes._
 
    ```bash
-   ./install.sh
+   sudo ./install.sh
    ```
 
 4. **Stop the container**:
