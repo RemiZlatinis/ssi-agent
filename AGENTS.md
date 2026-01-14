@@ -86,19 +86,21 @@ Use the provided `DevContainerfile` to spin up a systemd-enabled environment.
    podman compose up --build -d
    ```
 
+   _The `install.sh` script will automatically executed from the `dev-installer` service to initialize the installation of the package in the container. It will setup the needed systemd unit for the daemon, the ssi user and group, and the log directory. It's also set the package to "editable/development mode" to allow immediate code changes._
+
 2. **Access Shell**:
 
    ```bash
    podman exec -it ssi-agent-dev-1 bash
    ```
 
-3. **Initialize the development setup**:
-
-   _The `install.sh` script must run once to initialize the installation of the package in the container. It will setup the needed systemd unit for the daemon, the ssi user and group, and the log directory. It's also set the package to "editable/development mode" to allow immediate code changes._
+3. **Interact with the CLI**:
 
    ```bash
-   sudo ./install.sh
+   ssi --help
    ```
+
+   _Note: We need to wait couple of seconds after compose so the `dev-installed` finished to run the install script._
 
 4. **Stop the container**:
 
