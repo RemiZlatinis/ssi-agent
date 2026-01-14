@@ -143,5 +143,5 @@ Optional extended body:
 - Reference related issues if applicable
 ```
 
-**Types**: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `perf`  
-**Scopes**: `daemon`, `cli`, `library`, `websocket`, `config`, `systemd`
+**Types**: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `perf`, `security`, `build`, `ci`, `style` etc.
+**Scopes**: `daemon`, `cli`, `library`, `websocket`, `config`, `systemd` etc.
