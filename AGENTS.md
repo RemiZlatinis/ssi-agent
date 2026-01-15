@@ -74,63 +74,225 @@ You **MUST NOT** violate these rules:
 
 ## 🔄 Development Workflow
 
-> **CRITICAL**: Because this daemon interacts with `systemd`, it requires a specific environment. The way to develop is to use a container with systemd enabled with Podman.
+> **CRITICAL**: Because this daemon interacts with `systemd`, it requires a specific environment. The recommended way to develop is to use a container with systemd enabled with Podman.
 
-### 🐳 Containerized Environment (Podman)
+### Prerequisites
 
-Use the provided `DevContainerfile` to spin up a systemd-enabled environment.
+Before starting, ensure you have:
 
-1. **Start (and build) the development container**:
+- **Python**: Version 3.12 or higher
+- **Poetry**: For dependency management (`pip install poetry`)
+- **Podman**: For containerized development (`podman --version` should work)
+- **VS Code** (optional): For integrated development with Ruff formatter
 
-   ```bash
-   podman compose up --build -d
-   ```
+### Step 1: Install Pre-Commit Hooks
 
-   _The `install.sh` script will automatically executed from the `dev-installer` service to initialize the installation of the package in the container. It will setup the needed systemd unit for the daemon, the ssi user and group, and the log directory. It's also set the package to "editable/development mode" to allow immediate code changes._
+Pre-commit hooks enforce code quality standards (Ruff, Mypy) **before committing**. This is non-negotiable.
 
-2. **Access Shell**:
-
-   ```bash
-   podman exec -it ssi-agent-dev-1 bash
-   ```
-
-3. **Interact with the CLI**:
-
-   ```bash
-   ssi --help
-   ```
-
-   _Note: We need to wait couple of seconds after compose so the `dev-installed` finished to run the install script._
-
-4. **Stop the container**:
-
-   ```bash
-   podman compose down
-
-   # Or remove the data
-   podman compose down --volumes
-   ```
-
-### 🧪 common tasks
-
-#### Pre-Commit Hooks (Required)
-
-This repository uses pre-commit hooks to enforce code quality standards (Black, Ruff, Mypy). **Hooks must be installed before making any commits.**
+**Installation:**
 
 ```bash
-# Install pre-commit tool and initialize hooks
+# On your local machine (outside container)
 pip install pre-commit
+
+# Initialize hooks for this repository
 pre-commit install
 ```
 
-The hooks will automatically run on staged files during `git commit`. To manually verify all checks:
+**Verification:**
 
 ```bash
-# Run all checks on changed files
+# Run all checks on all files to ensure setup is working
+pre-commit run --all-files
+
+# Expected output: All checks pass with no failures
+```
+
+If pre-commit fails, fix the reported issues, stage the changes, and run pre-commit again:
+
+```bash
+# After fixing issues
+git add .
 pre-commit run --all-files
 ```
 
-If hooks fail, fix the issues, stage them, and retry the commit. Commits that fail these checks will not be allowed.
+**What happens on commit:**
+
+Once installed, pre-commit will automatically run on any `git commit`:
+
+```bash
+git commit -m "feat(daemon): improve log parsing"
+
+# Pre-commit checks run automatically:
+# - Black/Ruff format check
+# - Mypy type checking
+# - Other linters
+
+# If checks fail, fix issues and retry the commit
+```
+
+### Step 2: Configure VS Code (Recommended)
+
+VS Code can enforce **the same standards as CI/CD** with proper configuration. This catches issues before pre-commit.
+
+**Install Extensions:**
+
+The workspace already includes `.vscode/extensions.json` with recommended extensions. Install:
+
+1. [Pylance](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance) — Type checking and IntelliSense
+2. [Ruff](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff) — Formatting and linting
+
+VS Code will prompt you to install recommended extensions; accept the prompt.
+
+**Workspace Settings (Pre-Configured):**
+
+The `.vscode/settings.json` file is already configured with:
+
+```json
+{
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.ruff": "explicit",
+      "source.fixAll.ruff": "explicit"
+    }
+  },
+  "ruff.lineLength": 88,
+  "ruff.lint.select": ["E", "F", "W", "I", "UP"]
+}
+```
+
+This means:
+
+- **Format on save** with Ruff (Black-compatible)
+- **Auto-organize imports** when you save
+- **Line length: 88 characters** (matches CI/CD)
+
+**Important Note on Line Length:**
+
+- Ruff's formatter only rewrites code **structurally** (indentation, spacing, quote style, etc.)
+- Lines exceeding 88 characters are flagged as violations but require **manual refactoring**
+- Use Ruff's auto-fix on save which handles many issues automatically
+- For long lines: break them across multiple lines manually or use backslash continuation
+
+### Step 3: Set Up Containerized Development
+
+Because the daemon interacts with `systemd`, development requires a container with systemd enabled.
+
+**Start the development container:**
+
+```bash
+podman compose up --build -d
+```
+
+This command will automatically:
+
+- Build the development image with systemd enabled
+- Install the agent in editable/development mode
+- Set up systemd units (`ssi-agent.service`)
+- Create the `ssi-agent` user and group
+- Initialize log directories
+
+**Access the container shell:**
+
+```bash
+podman exec -it ssi-agent-dev-1 bash
+```
+
+**Inside the container, interact with the CLI:**
+
+```bash
+ssi --help
+ssi service add /opt/services/my-service.sh my-service-id
+ssi service status
+```
+
+_Note: Wait a couple of seconds after `podman compose up` before accessing the container, as the `dev-installer` service needs time to run._
+
+**Stop the development environment:**
+
+```bash
+# Just stop the container
+podman compose down
+
+# Or remove all data and start fresh
+podman compose down --volumes
+```
+
+### Step 4: Verify the Setup is Working
+
+Run these commands to verify all components are working correctly:
+
+**Check pre-commit hooks:**
+
+```bash
+# Verify hooks are installed
+pre-commit run --all-files
+
+# Should output: All checks passed
+```
+
+**Check Ruff in VS Code:**
+
+Open any `.py` file in VS Code. It should:
+
+- Show type hints from Pylance
+- Auto-format on save (Ruff)
+- Show linting warnings/errors in the Problems panel
+
+If issues don't appear, try:
+
+1. Restarting VS Code
+2. Running `pre-commit run --all-files` to see if there are errors
+3. Checking `.vscode/settings.json` is present
+
+**Check the containerized daemon:**
+
+```bash
+# Inside the container
+systemctl status ssi-agent
+
+# Should show: active (running)
+
+# View live logs
+journalctl -fu ssi-agent
+```
+
+**Test the CLI inside the container:**
+
+```bash
+# Inside the container
+ssi --help
+ssi service list
+```
+
+### Common Issues & Troubleshooting
+
+**Pre-commit refuses to install:**
+
+- Ensure Python 3.12+ is in your PATH
+- Try: `python -m pip install --upgrade pre-commit`
+
+**Ruff extension not formatting in VS Code:**
+
+- Restart VS Code
+- Verify `.vscode/settings.json` is present and readable
+- Install the Ruff extension manually from the marketplace
+
+**Container fails to start:**
+
+- Ensure Podman is running: `podman --version`
+- Check disk space: `df -h`
+- Try: `podman compose down --volumes && podman compose up --build -d`
+
+**Daemon not starting in container:**
+
+- Check logs: `journalctl -u ssi-agent -n 50`
+- Ensure ssi-agent user exists: `id ssi-agent` (inside container)
+- Verify `/opt/ssi-agent` is mounted correctly
+
+### 🧪 Common Tasks
 
 #### Inside Container
 

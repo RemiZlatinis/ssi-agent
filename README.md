@@ -77,75 +77,33 @@ ssi service status --details
 ssi service remove my-service-id
 ```
 
-## �️ Development Setup
+## Development Setup
 
-### Prerequisites for Development
+### Quick Start
 
-- **Operating System**: Any
-- **Python**: Version 3.12 or higher
-- **Poetry**: For dependency management
-- **Podman**: For containerized development (required)
+To set up your development environment (with validation), use this prompt with your AI agent:
 
-### Local Development Environment
+```
+I'm working on the ssi-agent project. Please help me set up and validate my development environment.
+Follow the detailed instructions in AGENTS.md under the "Development Workflow" section to:
+1. Install pre-commit hooks
+2. Configure VS Code with Ruff formatter
+3. Verify the setup is working correctly
 
-The recommended way to develop is using the containerized environment with Podman, which includes systemd for testing the agent in isolation.
+Please check each step and report any issues.
+```
 
-#### 1. Start the Development Container
+**Or manually follow** the comprehensive [Development Setup Guide](./AGENTS.md#-development-workflow) in [AGENTS.md](./AGENTS.md).
+
+### Container-Based Development
+
+The recommended way to develop is using Podman with systemd:
 
 ```bash
 podman compose up --build -d
 ```
 
-This will automatically:
-
-- Build the dev image
-- Install the agent in editable mode
-- Set up systemd units
-- Create the ssi-agent user
-
-#### 2. Install Pre-Commit Hooks
-
-Pre-commit hooks enforce code quality (Black, Ruff, Mypy) and must be installed before committing:
-
-```bash
-# On your local machine (outside container)
-pip install pre-commit
-pre-commit install
-
-# Verify hooks are working
-pre-commit run --all-files
-```
-
-#### 3. Access the Development Container
-
-```bash
-podman exec -it ssi-agent-dev-1 bash
-```
-
-#### 4. Run the Development Daemon
-
-```bash
-# Inside the container
-systemctl restart ssi-agent
-journalctl -fu ssi-agent  # View logs
-```
-
-### Running Tests
-
-```bash
-podman compose up --build test-runner
-```
-
-### Stopping Development Environment
-
-```bash
-podman compose down
-
-# To remove all data
-podman compose down --volumes
-```
-
-For more detailed development information, see [AGENTS.md](./AGENTS.md).
+For more details, see [AGENTS.md](./AGENTS.md#-containerized-environment-podman).
 
 ## 📚 Documentation
 
