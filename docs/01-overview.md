@@ -14,7 +14,7 @@ The **Service Status Indicator (SSI) Agent** is a lightweight monitoring daemon 
 
 ## How It Works
 
-```                                                        
+```
 ┌─────────────────────────────────────────────────────────┐
 │                     Linux System                        │
 │ ┌─────────────┐    ┌─────────────┐    ┌───────────────┐ │
@@ -29,7 +29,7 @@ The **Service Status Indicator (SSI) Agent** is a lightweight monitoring daemon 
 │ │   Scripts   │    │    Files    │                      │
 │ └─────────────┘    └─────────────┘                      │
 └─────────────────────────────────────────────────────────┘
-```                                                        
+```
 
 1. **Service scripts** are BASH scripts that perform monitoring checks
 2. **Systemd timers** trigger scripts according to their schedule

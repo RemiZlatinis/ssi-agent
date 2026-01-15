@@ -1,4 +1,4 @@
-# This file is used to run the ssi-agent on a reproducible environment 
+# This file is used to run the ssi-agent on a reproducible environment
 # eliminating system inconsistencies, simplify DX and testing.
 
 # We are using the latest Ubuntu release image

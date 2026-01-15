@@ -192,9 +192,9 @@ create_symlink() {
 install_service_file() {
     print_status "Installing systemd service file..."
 
-    SSI_AGENT_SERVICE_UNIT="$INSTALL_DIR/deploy/ssi-agent.service" 
+    SSI_AGENT_SERVICE_UNIT="$INSTALL_DIR/deploy/ssi-agent.service"
     TARGET="/etc/systemd/system/"
-    cp "$SSI_AGENT_SERVICE_UNIT" "$TARGET"    
+    cp "$SSI_AGENT_SERVICE_UNIT" "$TARGET"
 }
 
 setup_service() {
@@ -213,7 +213,7 @@ setup_service() {
 
 install_logrotate() {
     print_status "Installing logrotate configuration..."
-    
+
     LOGROTATE_FILE="$INSTALL_DIR/deploy/logrotate.conf"
     TARGET="/etc/logrotate.d/"
     cp "$LOGROTATE_FILE" "$TARGET"
