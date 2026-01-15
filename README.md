@@ -77,6 +77,76 @@ ssi service status --details
 ssi service remove my-service-id
 ```
 
+## �️ Development Setup
+
+### Prerequisites for Development
+
+- **Operating System**: Any
+- **Python**: Version 3.12 or higher
+- **Poetry**: For dependency management
+- **Podman**: For containerized development (required)
+
+### Local Development Environment
+
+The recommended way to develop is using the containerized environment with Podman, which includes systemd for testing the agent in isolation.
+
+#### 1. Start the Development Container
+
+```bash
+podman compose up --build -d
+```
+
+This will automatically:
+
+- Build the dev image
+- Install the agent in editable mode
+- Set up systemd units
+- Create the ssi-agent user
+
+#### 2. Install Pre-Commit Hooks
+
+Pre-commit hooks enforce code quality (Black, Ruff, Mypy) and must be installed before committing:
+
+```bash
+# On your local machine (outside container)
+pip install pre-commit
+pre-commit install
+
+# Verify hooks are working
+pre-commit run --all-files
+```
+
+#### 3. Access the Development Container
+
+```bash
+podman exec -it ssi-agent-dev-1 bash
+```
+
+#### 4. Run the Development Daemon
+
+```bash
+# Inside the container
+systemctl restart ssi-agent
+journalctl -fu ssi-agent  # View logs
+```
+
+### Running Tests
+
+```bash
+podman compose up --build test-runner
+```
+
+### Stopping Development Environment
+
+```bash
+podman compose down
+
+# To remove all data
+podman compose down --volumes
+```
+
+For more detailed development information, see [AGENTS.md](./AGENTS.md).
+
 ## 📚 Documentation
 
 For detailed documentation, please refer to the `docs/` directory in this repository:
@@ -92,11 +162,14 @@ For detailed documentation, please refer to the `docs/` directory in this reposi
 
 We welcome contributions! Please see the [Contributing Guidelines](https://github.com/RemiZlatinis/ssi/blob/main/CONTRIBUTING.md) in the SSI Metarepository.
 
-1.  Fork it.
-2.  Create your feature branch (`git checkout -b feature/amazing-feature`).
-3.  Commit your changes (`git commit -m 'feat: add amazing feature'`).
-4.  Push to the branch (`git push origin feature/amazing-feature`).
-5.  Open a Pull Request.
+**Before submitting a PR, ensure:**
+
+1. Pre-commit hooks are installed and passing locally
+2. Your feature branch is based on `main`
+3. Commit messages follow conventional commit format
+4. All checks pass: `pre-commit run --all-files`
+
+For the full contribution process, refer to the [Metarepository Contributing Guide](https://github.com/RemiZlatinis/ssi/blob/main/CONTRIBUTING.md).
 
 ## ⚖️ License
 

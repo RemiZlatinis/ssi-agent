@@ -113,6 +113,25 @@ Use the provided `DevContainerfile` to spin up a systemd-enabled environment.
 
 ### 🧪 common tasks
 
+#### Pre-Commit Hooks (Required)
+
+This repository uses pre-commit hooks to enforce code quality standards (Black, Ruff, Mypy). **Hooks must be installed before making any commits.**
+
+```bash
+# Install pre-commit tool and initialize hooks
+pip install pre-commit
+pre-commit install
+```
+
+The hooks will automatically run on staged files during `git commit`. To manually verify all checks:
+
+```bash
+# Run all checks on changed files
+pre-commit run --all-files
+```
+
+If hooks fail, fix the issues, stage them, and retry the commit. Commits that fail these checks will not be allowed.
+
 #### Inside Container
 
 - **Restart Service** (after changes on the daemon):
