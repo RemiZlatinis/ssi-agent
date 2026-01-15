@@ -10,7 +10,7 @@ import logging
 import tempfile
 from pathlib import Path
 
-from . import loader, system
+from . import loader, models, system
 from .constants import (
     INSTALLED_SERVICE_SCRIPTS_DIR,
     SSI_AGENT_UNIT_PREFIX,
@@ -64,7 +64,7 @@ def add(source_script_path: Path, start_now: bool = True) -> str:
     return service_id
 
 
-def remove(service_id: str):
+def remove(service_id: str) -> None:
     """
     Completely removes a service from the system.
     """
@@ -87,21 +87,21 @@ def remove(service_id: str):
     logger.info(f"Service '{service_id}' removed completely.")
 
 
-def enable(service_id: str):
+def enable(service_id: str) -> None:
     """Enables the systemd timer for a service."""
     unit_name = f"{SSI_AGENT_UNIT_PREFIX}{service_id}.timer"
     system.enable_unit(unit_name, now=True)
     logger.info(f"Service '{service_id}' enabled.")
 
 
-def disable(service_id: str):
+def disable(service_id: str) -> None:
     """Disables the systemd timer for a service."""
     unit_name = f"{SSI_AGENT_UNIT_PREFIX}{service_id}.timer"
     system.disable_unit(unit_name, now=True)
     logger.info(f"Service '{service_id}' disabled.")
 
 
-def run(service_id: str):
+def run(service_id: str) -> None:
     """Starts the service unit immediately (one-shot run)."""
     unit_name = f"{SSI_AGENT_UNIT_PREFIX}{service_id}.service"
     system.start_unit(unit_name, background=True)
@@ -111,7 +111,7 @@ def run(service_id: str):
 # --- Internal Helpers ---
 
 
-def _install_systemd_units(service, script_path: Path):
+def _install_systemd_units(service: models.Service, script_path: Path) -> None:
     """Renders and moves systemd unit files into place."""
     template_dir = Path(__file__).parent / "templates"
 
@@ -136,7 +136,7 @@ def _install_systemd_units(service, script_path: Path):
     _write_privileged_unit(f"{SSI_AGENT_UNIT_PREFIX}{service.id}.timer", timer_content)
 
 
-def _render_template(template_path: Path, context: dict) -> str:
+def _render_template(template_path: Path, context: dict[str, object]) -> str:
     if not template_path.exists():
         raise FileNotFoundError(f"Template not found: {template_path}")
 
@@ -144,7 +144,7 @@ def _render_template(template_path: Path, context: dict) -> str:
     return template_text.format(**context)
 
 
-def _write_privileged_unit(filename: str, content: str):
+def _write_privileged_unit(filename: str, content: str) -> None:
     """Writes a file to a temp location and moves it to systemd via sudo."""
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as tf:
         tf.write(content)

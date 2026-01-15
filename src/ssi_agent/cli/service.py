@@ -6,12 +6,12 @@ from pathlib import Path
 
 import click
 
-from .. import loader, manager, parsers
-from ..constants import LOG_DIR
+from ssi_agent import loader, manager, models, parsers
+from ssi_agent.constants import LOG_DIR
 
 
 @click.group(name="service")
-def service():
+def service() -> None:
     """Manage service scripts and their monitoring state."""
     pass
 
@@ -21,7 +21,7 @@ def service():
 @click.option(
     "--no-start", is_flag=True, help="Don't enable/start the service immediately."
 )
-def add_service(script_path: str, no_start: bool):
+def add_service(script_path: str, no_start: bool) -> None:
     """
     Install a new service script.
 
@@ -38,7 +38,7 @@ def add_service(script_path: str, no_start: bool):
 
 @service.command(name="remove")
 @click.argument("service_id")
-def remove_service(service_id: str):
+def remove_service(service_id: str) -> None:
     """Uninstall a service script and remove its systemd units."""
     try:
         manager.remove(service_id)
@@ -49,7 +49,7 @@ def remove_service(service_id: str):
 
 @service.command(name="enable")
 @click.argument("service_id")
-def enable_service(service_id: str):
+def enable_service(service_id: str) -> None:
     """Enable the systemd timer for an installed service."""
     try:
         manager.enable(service_id)
@@ -60,7 +60,7 @@ def enable_service(service_id: str):
 
 @service.command(name="disable")
 @click.argument("service_id")
-def disable_service(service_id: str):
+def disable_service(service_id: str) -> None:
     """Disable the systemd timer for a service."""
     try:
         manager.disable(service_id)
@@ -71,7 +71,7 @@ def disable_service(service_id: str):
 
 @service.command(name="run")
 @click.argument("service_id")
-def run_service(service_id: str):
+def run_service(service_id: str) -> None:
     """Trigger an immediate run of the service script."""
     try:
         manager.run(service_id)
@@ -87,7 +87,7 @@ def run_service(service_id: str):
     is_flag=True,
     help="Show all installed services, including disabled ones.",
 )
-def list_services(show_all: bool):
+def list_services(show_all: bool) -> None:
     """List installed services and their basic info."""
     services = loader.list_services(all=show_all)
     if not services:
@@ -116,7 +116,7 @@ def list_services(show_all: bool):
 @service.command(name="status")
 @click.argument("service_id", required=False)
 @click.option("--details", is_flag=True, help="Show full log metadata.")
-def status(service_id: str | None, details: bool):
+def status(service_id: str | None, details: bool) -> None:
     """Display the last known status of services from logs."""
     if service_id:
         srv = loader.load_from_id(service_id)
@@ -159,13 +159,11 @@ def status(service_id: str | None, details: bool):
             click.echo(f"{s.name}: Error reading logs ({e})")
 
 
-def _get_status_color(status):
-    from ..models import Status
-
-    if status == Status.OK:
+def _get_status_color(status: models.Status | None) -> str:
+    if status == models.Status.OK:
         return "green"
-    if status in (Status.WARNING, Status.UPDATE):
+    if status in (models.Status.WARNING, models.Status.UPDATE):
         return "yellow"
-    if status in (Status.FAILURE, Status.ERROR):
+    if status in (models.Status.FAILURE, models.Status.ERROR):
         return "red"
     return "white"

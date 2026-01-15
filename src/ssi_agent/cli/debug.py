@@ -12,7 +12,7 @@ from ssi_agent.models import Status
 
 
 @click.group(name="debug")
-def debug():
+def debug() -> None:
     """Diagnostic and manual override commands."""
     pass
 
@@ -23,7 +23,7 @@ def debug():
     "status", type=click.Choice([s.value for s in Status], case_sensitive=False)
 )
 @click.argument("message", required=False)
-def set_status(service_id: str, status: str, message: str | None):
+def set_status(service_id: str, status: str, message: str | None) -> None:
     """
     Manually inject a status update into a service log.
 
@@ -49,7 +49,7 @@ def set_status(service_id: str, status: str, message: str | None):
 
 @debug.command(name="set-backend")
 @click.argument("url")
-def set_backend(url: str):
+def set_backend(url: str) -> None:
     """Override the backend API URL in the configuration."""
     try:
         config.set_backend_url(url)
@@ -61,7 +61,7 @@ def set_backend(url: str):
 @debug.command(name="logs")
 @click.option("-f", "--follow", is_flag=True, help="Follow log output.")
 @click.option("-n", "--lines", default=50, help="Number of last lines to show.")
-def agent_logs(follow: bool, lines: int):
+def agent_logs(follow: bool, lines: int) -> None:
     """Display the ssi-agent daemon logs."""
     log_path = LOG_DIR / "_agent.log"
 

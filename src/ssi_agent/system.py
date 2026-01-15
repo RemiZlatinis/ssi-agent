@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def _run(
     cmd: list[str], check: bool = True, capture: bool = True
-) -> subprocess.CompletedProcess:
+) -> subprocess.CompletedProcess[str]:
     """
     Executes a command and handles standard failure cases.
 
@@ -43,12 +43,12 @@ def _run(
 # --- Systemd Management ---
 
 
-def reload_daemon():
+def reload_daemon() -> None:
     """Reloads the systemd manager configuration (systemctl daemon-reload)."""
     _run(["sudo", "systemctl", "daemon-reload"])
 
 
-def enable_unit(unit_name: str, now: bool = True):
+def enable_unit(unit_name: str, now: bool = True) -> None:
     """
     Enables a systemd unit.
 
@@ -63,7 +63,7 @@ def enable_unit(unit_name: str, now: bool = True):
     _run(cmd)
 
 
-def disable_unit(unit_name: str, now: bool = True):
+def disable_unit(unit_name: str, now: bool = True) -> None:
     """
     Disables a systemd unit.
 
@@ -78,7 +78,7 @@ def disable_unit(unit_name: str, now: bool = True):
     _run(cmd)
 
 
-def start_unit(unit_name: str, background: bool = False):
+def start_unit(unit_name: str, background: bool = False) -> None:
     """
     Starts a systemd unit.
 
@@ -126,7 +126,7 @@ def list_units(pattern: str, state: str = "enabled") -> list[str]:
 # --- Privileged File Management ---
 
 
-def copy_file(src: Path, dst: Path, mode: str = None):
+def copy_file(src: Path, dst: Path, mode: str | None = None) -> None:
     """
     Copies a file to a destination using sudo.
 
@@ -140,18 +140,18 @@ def copy_file(src: Path, dst: Path, mode: str = None):
         set_permissions(dst, mode)
 
 
-def move_file(src: Path, dst: Path):
+def move_file(src: Path, dst: Path) -> None:
     """Moves a file using sudo."""
     _run(["sudo", "mv", str(src), str(dst)])
 
 
-def remove_file(path: Path):
+def remove_file(path: Path) -> None:
     """Removes a file using sudo. Does nothing if file doesn't exist."""
     if path.exists():
         _run(["sudo", "rm", str(path)])
 
 
-def make_directory(path: Path, parents: bool = True):
+def make_directory(path: Path, parents: bool = True) -> None:
     """Creates a directory using sudo."""
     cmd = ["sudo", "mkdir"]
     if parents:
@@ -160,12 +160,12 @@ def make_directory(path: Path, parents: bool = True):
     _run(cmd)
 
 
-def set_permissions(path: Path, mode: str):
+def set_permissions(path: Path, mode: str) -> None:
     """Sets octal permissions for a file/directory using sudo chmod."""
     _run(["sudo", "chmod", mode, str(path)])
 
 
-def write_log_line(log_path: Path, content: str):
+def write_log_line(log_path: Path, content: str) -> None:
     """
     Appends a line to a log file in a privileged directory.
     Useful for manual status overrides.
@@ -184,7 +184,7 @@ def write_log_line(log_path: Path, content: str):
         raise RuntimeError(f"Failed to write to log file: {e}")
 
 
-def tail_file(path: Path, lines: int = 50, follow: bool = False):
+def tail_file(path: Path, lines: int = 50, follow: bool = False) -> None:
     """
     Executes a privileged tail on a file and streams output to stdout.
 

@@ -12,19 +12,20 @@ from ssi_agent import config
 
 
 @click.group(name="auth")
-def auth():
+def auth() -> None:
     """Agent registration and identity management."""
     pass
 
 
 @auth.command(name="register")
-def register():
+def register() -> None:
     """Register this agent with the SSI backend."""
     # Check if already registered
     key = config.get_agent_key()
     if key:
         click.echo(
-            "Agent is already registered. Use 'auth unregister' first if you want to re-register."
+            "Agent is already registered. Use 'auth unregister' first if you want"
+            " to re-register."
         )
         return
 
@@ -88,9 +89,10 @@ def register():
 
 @auth.command(name="unregister")
 @click.confirmation_option(
-    prompt="Are you sure you want to unregister this agent? It will stop communicating with the backend."
+    prompt="Are you sure you want to unregister this agent? It will stop communicating"
+    " with the backend."
 )
-def unregister():
+def unregister() -> None:
     """Remove the agent's credentials and stop backend connection."""
     agent_key = config.get_agent_key()
     if not agent_key:
@@ -107,7 +109,8 @@ def unregister():
         config.remove_agent_key()
         click.echo("✅ Agent key removed and unregistered from backend.")
     except Exception as e:
-        # We remove the local key even if the server call fails to allow "cleaning" the state
+        # We remove the local key even if the server call fails
+        # to allow "cleaning" the state
         config.remove_agent_key()
         click.secho(
             f"⚠️ Server unregistration failed ({e}), but local key was removed.",
@@ -116,7 +119,7 @@ def unregister():
 
 
 @auth.command(name="whoami")
-def whoami():
+def whoami() -> None:
     """Display information about the registered agent."""
     agent_key = config.get_agent_key()
     if not agent_key:
@@ -140,7 +143,8 @@ def whoami():
         owner = data.get("owner")
         if owner:
             click.echo(
-                f"  Owner:     {owner.get('username')} ({owner.get('email') or 'no email'})"
+                f"  Owner:     {owner.get('username')}"
+                f" ({owner.get('email') or 'no email'})"
             )
 
     except Exception as e:

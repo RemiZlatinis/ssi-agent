@@ -46,7 +46,7 @@ CONFIG = {
 }
 
 
-def setup_logging():
+def setup_logging() -> None:
     """Configure logging."""
 
     # Ensure log directory exists
@@ -79,7 +79,7 @@ def setup_logging():
     logging.config.dictConfig(CONFIG)
 
 
-def _get_release_version():
+def _get_release_version() -> str:
     try:
         # Get version from installed package metadata
         release_version = version("ssi-agent")
