@@ -25,6 +25,10 @@ RUN apt-get update && apt-get install -y \
 # Setup a working directory
 WORKDIR /opt/ssi-agent
 
+# Copy the application source code
+# (This ensures the code is available even without volume mounts on testing environment)
+COPY . .
+
 # Create a non-root admin user for development
 RUN useradd -m -s /bin/bash admin \
     && usermod -aG sudo admin \

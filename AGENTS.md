@@ -111,7 +111,9 @@ Use the provided `DevContainerfile` to spin up a systemd-enabled environment.
    podman compose down --volumes
    ```
 
-### 🧪 common tasks (Inside Container)
+### 🧪 common tasks
+
+#### Inside Container
 
 - **Restart Service** (after changes on the daemon):
 
@@ -129,6 +131,16 @@ Use the provided `DevContainerfile` to spin up a systemd-enabled environment.
 
   ```bash
   tail -f /var/log/ssi-agent/service-name.log
+  ```
+
+#### Outside Container
+
+- **View the Test Logs**:
+
+  _If all the test are passed you will see the container `test-runner-1 exited with code 0`. If a test is failing and you need the details use the following:_
+
+  ```bash
+  podman compose up --build test-runner
   ```
 
 ### Commit Guidelines
