@@ -1,0 +1,31 @@
+services:
+  dev:
+    build:
+      context: ..
+      dockerfile: dev/Dockerfile
+    container_name: ssi-agent-dev
+    volumes:
+      # Working directory, and the enabled service scripts.
+      - ../:/opt/ssi-agent/
+
+      # Configurations (config.json), the ssi-agent.service,
+      # and systemd's units for enabled services
+      - ssi-agent-etc:/etc/ssi-agent/
+    env_file:
+      - ../.env
+    healthcheck:
+      test: ["CMD", "systemctl", "is-system-running"]
+      interval: 5s
+      retries: 5
+
+  test:
+    build:
+      context: ..
+      dockerfile: dev/Dockerfile
+    healthcheck:
+      test: ["CMD", "systemctl", "is-system-running"]
+      interval: 5s
+      retries: 5
+
+volumes:
+  ssi-agent-etc:

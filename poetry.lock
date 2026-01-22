@@ -1067,6 +1067,20 @@ tornado = ["tornado (>=6)"]
 unleash = ["UnleashClient (>=6.0.1)"]
 
 [[package]]
+name = "ssi-agent-dev"
+version = "0.1.0"
+description = "Development scripts for ssi-agent"
+optional = false
+python-versions = ">=3.12"
+groups = ["dev"]
+files = []
+develop = true
+
+[package.source]
+type = "directory"
+url = "dev"
+
+[[package]]
 name = "types-click"
 version = "7.1.8"
 description = "Typing stubs for click"
@@ -1284,4 +1298,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12"
-content-hash = "f9d3b4c04b9b679c5c3e66211dcc245402bfb1276c74928efc54b0b9deb9196a"
+content-hash = "91e4215dc043a6e0da2687549e56fab8442ad2c73aa7673b2069cb911771a53a"

@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "ssi-agent-dev"
+version = "0.1.0"
+description = "Development scripts for ssi-agent"
+authors = ["Remi Zlatinis <remizlatinis@gmail.com>"]
+# We define the package as the directory above this one so 'dev' module is found
+packages = [{include = "dev", from = ".."}]
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+
+[tool.poetry.scripts]
+dev = "dev.dev:main"
+test = "dev.test:main"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

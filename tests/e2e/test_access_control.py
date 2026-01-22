@@ -44,13 +44,13 @@ class TestAccessControl:
         result = run_command("/usr/local/bin/ssi --help", user=test_user)
 
         # 3. Assert Failure
-        assert result.returncode != 0, (
-            "Security Check Failed: Regular user was able to execute ssi!"
-        )
+        assert (
+            result.returncode != 0
+        ), "Security Check Failed: Regular user was able to execute ssi!"
 
         # 4. Assert correct reason (Permission denied)
         # Note: Bash error messages typically go to stderr
         combined_output = result.stderr + result.stdout
-        assert "Permission denied" in combined_output, (
-            f"Unexpected error message: {combined_output}"
-        )
+        assert (
+            "Permission denied" in combined_output
+        ), f"Unexpected error message: {combined_output}"
