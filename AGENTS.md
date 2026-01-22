@@ -178,46 +178,31 @@ This means:
 
 ### Step 3: Set Up Containerized Development
 
-Because the daemon interacts with `systemd`, development requires a container with systemd enabled.
+Because the daemon interacts with `systemd`, development requires a container with systemd enabled. We provide a helper script to manage this environment.
 
-**Start the development container:**
+**Start the development environment:**
 
 ```bash
-podman compose up --build -d
+poetry run dev
 ```
 
 This command will automatically:
 
-- Build the development image with systemd enabled
-- Install the agent in editable/development mode
-- Set up systemd units (`ssi-agent.service`)
-- Create the `ssi-agent` user and group
-- Initialize log directories
+- Build/Start the development container with systemd enabled using Podman.
+- Run the `install.sh` script inside the container.
+- Drop you into an interactive bash shell as the `admin` user.
 
-**Access the container shell:**
+**Available Flags:**
 
-```bash
-podman exec -it ssi-agent-dev-1 bash
-```
+- `--install`: Force run the installer even if `ssi` is already detected.
+- `--clear`: Remove volumes and data before starting (requires confirmation). Useful for a fresh start.
 
-**Inside the container, interact with the CLI:**
+**Access the container shell manually:**
 
-```bash
-ssi --help
-ssi service add /opt/services/my-service.sh my-service-id
-ssi service status
-```
-
-_Note: Wait a couple of seconds after `podman compose up` before accessing the container, as the `dev-installer` service needs time to run._
-
-**Stop the development environment:**
+If you need to enter the container later without restarting it:
 
 ```bash
-# Just stop the container
-podman compose down
-
-# Or remove all data and start fresh
-podman compose down --volumes
+podman exec -it ssi-agent-dev bash
 ```
 
 ### Step 4: Verify the Setup is Working
@@ -262,9 +247,9 @@ journalctl -fu ssi-agent
 **Test the CLI inside the container:**
 
 ```bash
-# Inside the container
+# Inside the container (already dropped in by poetry run dev)
 ssi --help
-ssi service list
+ssi service status
 ```
 
 ### Common Issues & Troubleshooting
@@ -316,12 +301,12 @@ ssi service list
 
 #### Outside Container
 
-- **View the Test Logs**:
+- **Run E2E Tests**:
 
-  _If all the test are passed you will see the container `test-runner-1 exited with code 0`. If a test is failing and you need the details use the following:_
+  This command starts a fresh test container, installs the agent, and runs the E2E test suite:
 
   ```bash
-  podman compose up --build test-runner
+  poetry run test
   ```
 
 ### Commit Guidelines

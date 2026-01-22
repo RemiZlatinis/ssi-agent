@@ -97,10 +97,10 @@ Please check each step and report any issues.
 
 ### Container-Based Development
 
-The recommended way to develop is using Podman with systemd:
+The recommended way to develop is using the automated development environment script:
 
 ```bash
-podman compose up --build -d
+poetry run dev
 ```
 
 For more details, see [AGENTS.md](./AGENTS.md#-containerized-environment-podman).
