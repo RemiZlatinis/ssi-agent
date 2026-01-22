@@ -1,56 +1,81 @@
-"""
-SSI Agent - Event Models
-
-This module defines the Data Transfer Objects (DTOs) used for communication
-between the SSI Agent and the SSI Backend via WebSockets.
-
-These classes act as wrappers or "Envelopes" for the core data models,
-ensuring that every message sent over the wire follows a consistent
-schema that the backend can parse.
-
-Naming Convention:
-    All classes in this module should suffix with 'Event' to distinguish
-    them from internal domain models.
-"""
+from datetime import datetime
+from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel
 
-from .models import ServiceInfo, StatusUpdate
+
+class ServiceStatus(str, Enum):
+    OK = "OK"
+    UPDATE = "UPDATE"
+    WARNING = "WARNING"
+    FAILURE = "FAILURE"
+    ERROR = "ERROR"
+    UNKNOWN = "UNKNOWN"
+
+    def __str__(self) -> str:
+        return self.value
 
 
-class AgentHelloEvent(BaseModel):
-    """
-    The initial handshake event sent by the agent upon connection.
-    Contains the agent identification and the list of currently managed services.
-    """
-
-    event: str = "agent_hello"
-    agent_key: str
-    services: list[ServiceInfo]
+# --- Models ---
 
 
-class ServiceAddedEvent(BaseModel):
-    """
-    Sent when a new service is added to the agent's management list.
-    """
+class AgentServiceDataModel(BaseModel):
+    id: str  # This is the human readable service-id
+    name: str
+    description: str
+    version: str
+    schedule: str
 
-    event: str = "service_added"
-    service: ServiceInfo
+
+# --- Payloads ---
 
 
-class ServiceRemovedEvent(BaseModel):
-    """
-    Sent when a service is removed from the agent's management list.
-    """
+class AgentReadyPayload(BaseModel):
+    services: list[AgentServiceDataModel]
 
-    event: str = "service_removed"
+
+class AgentServiceAddedPayload(BaseModel):
+    service: AgentServiceDataModel
+
+
+class AgentServiceRemovedPayload(BaseModel):
     service_id: str
 
 
-class StatusUpdateEvent(BaseModel):
-    """
-    Sent whenever a service status changes or a new heartbeat/log line is processed.
-    """
+class AgentServiceStatusUpdatePayload(BaseModel):
+    service_id: str
+    status: ServiceStatus
+    message: str
+    timestamp: datetime
 
-    event: str = "status_update"
-    update: StatusUpdate
+
+# --- Event Models ---
+
+
+class AgentReadyEvent(BaseModel):
+    type: Literal["agent.ready"] = "agent.ready"
+    data: AgentReadyPayload
+
+
+class AgentServiceAddedEvent(BaseModel):
+    type: Literal["agent.service_added"] = "agent.service_added"
+    data: AgentServiceAddedPayload
+
+
+class AgentServiceRemovedEvent(BaseModel):
+    type: Literal["agent.service_removed"] = "agent.service_removed"
+    data: AgentServiceRemovedPayload
+
+
+class AgentServiceStatusUpdateEvent(BaseModel):
+    type: Literal["agent.service_status_update"] = "agent.service_status_update"
+    data: AgentServiceStatusUpdatePayload
+
+
+AgentEvent = (
+    AgentReadyEvent
+    | AgentServiceAddedEvent
+    | AgentServiceRemovedEvent
+    | AgentServiceStatusUpdateEvent
+)

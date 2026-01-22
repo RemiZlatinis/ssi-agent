@@ -17,8 +17,7 @@ from .constants import (
     WEBSOCKET_PING_INTERVAL,
     WEBSOCKET_PING_TIMEOUT,
 )
-from .events import AgentHelloEvent
-from .models import ServiceInfo
+from .events import AgentReadyEvent, AgentReadyPayload, AgentServiceDataModel
 
 # Use a module-level logger
 logger = logging.getLogger(__name__)
@@ -71,12 +70,12 @@ async def connect_with_retry(agent_key: str) -> ClientConnection:
 
 async def send_agent_hello(
     connection: ClientConnection, agent_key: str
-) -> list[ServiceInfo] | None:
+) -> list[AgentServiceDataModel] | None:
     """
     Send the initial agent_hello event with all current services.
 
     Returns:
-        list[ServiceInfo]: The list of services sent, if successful.
+        list[AgentServiceDataModel]: The list of services sent, if successful.
         None: If the transmission failed.
     """
     try:
@@ -88,7 +87,7 @@ async def send_agent_hello(
         service_infos = []
 
         for service in services:
-            service_info = ServiceInfo(
+            service_info = AgentServiceDataModel(
                 id=service.id,
                 name=service.name,
                 description=service.description,
@@ -97,10 +96,12 @@ async def send_agent_hello(
             )
             service_infos.append(service_info)
 
-        hello_event = AgentHelloEvent(agent_key=agent_key, services=service_infos)
+        hello_event = AgentReadyEvent(
+            data=AgentReadyPayload(services=service_infos),
+        )
 
         await connection.send(hello_event.model_dump_json())
-        logger.info(f"Sent agent_hello event with {len(service_infos)} services")
+        logger.info(f"Sent agent.ready event with {len(service_infos)} services")
         return service_infos
 
     except Exception as e:

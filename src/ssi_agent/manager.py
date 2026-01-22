@@ -70,8 +70,7 @@ def remove(service_id: str) -> None:
     """
     service = loader.load_from_id(service_id)
     if not service:
-        logger.warning(f"Cannot remove: Service '{service_id}' is not installed.")
-        return
+        raise ValueError(f"Service '{service_id}' not found.")
 
     # 1. Stop and disable
     disable(service_id)

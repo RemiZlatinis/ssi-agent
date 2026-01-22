@@ -20,13 +20,14 @@ from websockets import ClientConnection
 from . import loader
 from .constants import LOG_DIR
 from .events import (
-    ServiceAddedEvent,
-    ServiceRemovedEvent,
-    StatusUpdateEvent,
-)
-from .models import (
-    ServiceInfo,
-    StatusUpdate,
+    AgentEvent,
+    AgentServiceAddedEvent,
+    AgentServiceAddedPayload,
+    AgentServiceDataModel,
+    AgentServiceRemovedEvent,
+    AgentServiceRemovedPayload,
+    AgentServiceStatusUpdateEvent,
+    AgentServiceStatusUpdatePayload,
 )
 from .parsers import parse_log_line
 
@@ -91,14 +92,20 @@ class LogHandler(FileSystemEventHandler):
 
                         timestamp, status, message = parse_log_line(last_line)
 
-                        # Create StatusUpdate and StatusUpdateEvent
-                        status_update = StatusUpdate(
+                        if not timestamp or not status:
+                            logger.warning(f"Malformed log line: {last_line}")
+                            return
+
+                        # Create Payload and wrap in AgentServiceStatusUpdateEvent
+                        status_update = AgentServiceStatusUpdatePayload(
                             service_id=service_id,
                             timestamp=timestamp,
                             status=status,
                             message=message or "",  # Handle None message
                         )
-                        status_event = StatusUpdateEvent(update=status_update)
+                        status_event = AgentServiceStatusUpdateEvent(
+                            data=status_update,
+                        )
 
                         # Send async message from this sync callback
                         asyncio.run_coroutine_threadsafe(
@@ -108,7 +115,7 @@ class LogHandler(FileSystemEventHandler):
         except Exception as e:
             logger.error(f"Error reading {str_path}: {e}")
 
-    async def send_status_update(self, status_event: StatusUpdateEvent) -> None:
+    async def send_status_update(self, status_event: AgentEvent) -> None:
         try:
             if self.connection:
                 await self.connection.send(status_event.model_dump_json())
@@ -152,7 +159,7 @@ class ServiceMonitor:
         self,
         connection: ClientConnection,
         agent_key: str,
-        initial_services: list[ServiceInfo] | None,
+        initial_services: list[AgentServiceDataModel] | None,
     ):
         self.connection = connection
         self.agent_key = agent_key
@@ -199,14 +206,16 @@ class ServiceMonitor:
                         service = next(
                             s for s in current_services if s.id == service_id
                         )
-                        service_info = ServiceInfo(
+                        service_info = AgentServiceDataModel(
                             id=service.id,
                             name=service.name,
                             description=service.description,
                             version=service.version,
                             schedule=service.schedule,
                         )
-                        added_event = ServiceAddedEvent(service=service_info)
+                        added_event = AgentServiceAddedEvent(
+                            data=AgentServiceAddedPayload(service=service_info),
+                        )
                         asyncio.run_coroutine_threadsafe(
                             self.connection.send(added_event.model_dump_json()),
                             self.loop,
@@ -218,7 +227,9 @@ class ServiceMonitor:
                 # Check for removed services
                 removed_services = self.known_services - current_service_ids
                 for service_id in removed_services:
-                    removed_event = ServiceRemovedEvent(service_id=service_id)
+                    removed_event = AgentServiceRemovedEvent(
+                        data=AgentServiceRemovedPayload(service_id=service_id),
+                    )
                     asyncio.run_coroutine_threadsafe(
                         self.connection.send(removed_event.model_dump_json()), self.loop
                     )

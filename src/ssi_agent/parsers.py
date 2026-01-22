@@ -2,10 +2,12 @@
 
 from datetime import UTC, datetime
 
-from .models import Status
+from .events import ServiceStatus
 
 
-def parse_log_line(line: str) -> tuple[datetime | None, Status | None, str | None]:
+def parse_log_line(
+    line: str,
+) -> tuple[datetime | None, ServiceStatus | None, str | None]:
     """
     Parses a log line to extract the timestamp, status and optional message.
 
@@ -32,7 +34,9 @@ def parse_log_line(line: str) -> tuple[datetime | None, Status | None, str | Non
     )
 
     status_str = parts[1].strip()
-    status: Status | None = Status[status_str] if status_str in Status else None
+    status: ServiceStatus | None = (
+        ServiceStatus[status_str] if status_str in ServiceStatus else None
+    )
 
     message = parts[2].strip() if len(parts) > 2 else None
 
