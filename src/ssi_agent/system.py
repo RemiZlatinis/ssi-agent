@@ -96,7 +96,12 @@ def start_unit(unit_name: str, background: bool = False) -> None:
     if background:
         try:
             # We use Popen here to fire and forget
-            subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.Popen(
+                cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                stdin=subprocess.DEVNULL,
+            )
         except Exception as e:
             raise RuntimeError(f"Failed to spawn background start for {unit_name}: {e}")
     else:
