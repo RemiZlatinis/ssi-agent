@@ -123,8 +123,13 @@ def load_from_id(service_id: str) -> Service | None:
 
 def list_services(all: bool = False) -> list[Service]:
     """
-    Returns a list of all services found in the installed scripts directory.
-    This is the core "Source of Truth" for the stateless agent.
+    Returns the all installed or only the enabled services.
+
+    Args:
+        all (bool): Whether to return all installed services or only the enabled ones.
+
+    Returns:
+        list[Service]: The list of installed services.
     """
     if not INSTALLED_SERVICE_SCRIPTS_DIR.exists():
         logger.debug(
