@@ -43,6 +43,12 @@ def _run(
 # --- Systemd Management ---
 
 
+def restart_agent() -> None:
+    """Restarts the agent."""
+    _run(["sudo", "systemctl", "restart", "ssi-agent.service"])
+    logger.info("Agent restarted successfully.")
+
+
 def reload_daemon() -> None:
     """Reloads the systemd manager configuration (systemctl daemon-reload)."""
     _run(["sudo", "systemctl", "daemon-reload"])

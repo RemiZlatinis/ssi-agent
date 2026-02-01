@@ -8,7 +8,7 @@ import time
 import click
 import requests
 
-from ssi_agent import config
+from ssi_agent import config, system
 
 
 @click.group(name="auth")
@@ -108,6 +108,9 @@ def unregister() -> None:
 
         config.remove_agent_key()
         click.echo("✅ Agent key removed and unregistered from backend.")
+
+        # Restart the agent
+        system.restart_agent()
     except Exception as e:
         # We remove the local key even if the server call fails
         # to allow "cleaning" the state
