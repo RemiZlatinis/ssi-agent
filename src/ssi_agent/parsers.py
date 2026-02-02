@@ -15,29 +15,29 @@ def parse_log_line(
         line (str): The log line to parse.
 
     Returns:
-        tuple[str, str, str | None]: A tuple containing the timestamp,
-        the status and optionally the message.
+        tuple[datetime | None, ServiceStatus | None, str | None]: A tuple containing
+        the timestamp, the status and optionally the message.
     """
-    parts = line.split(",", 2)
+    try:
+        parts = line.split(",", 2)
+        if len(parts) < 2:
+            return None, None, None
 
-    timestamp = parts[0].strip()
-    timestamp_dt: datetime | None = (
-        datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S") if timestamp else None
-    )
+        timestamp = parts[0].strip()
+        timestamp_dt: datetime | None = (
+            datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S") if timestamp else None
+        )
 
-    # Convert to UTC
-    local_timezone = datetime.now().astimezone().tzinfo
-    timestamp_dt = (
-        timestamp_dt.replace(tzinfo=local_timezone).astimezone(UTC)
-        if timestamp_dt
-        else None
-    )
+        # Convert to UTC
+        local_timezone = datetime.now().astimezone().tzinfo
+        if timestamp_dt:
+            timestamp_dt = timestamp_dt.replace(tzinfo=local_timezone).astimezone(UTC)
 
-    status_str = parts[1].strip()
-    status: ServiceStatus | None = (
-        ServiceStatus[status_str] if status_str in ServiceStatus else None
-    )
+        status_str = parts[1].strip()
+        status = ServiceStatus(status_str)
 
-    message = parts[2].strip() if len(parts) > 2 else None
+        message = parts[2].strip() if len(parts) > 2 else None
 
-    return timestamp_dt, status, message
+        return timestamp_dt, status, message
+    except (ValueError, IndexError):
+        return None, None, None
