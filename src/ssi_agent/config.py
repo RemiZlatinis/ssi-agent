@@ -80,6 +80,7 @@ def get_uri(
         "whoami",
         "initiate_registration",
         "registration_status",
+        "register_finalize",
     ],
 ) -> str | Never:
     try:
@@ -95,10 +96,11 @@ def get_uri(
 
             UriTemplates = {
                 "websocket": f"ws{s}://{host}/ws/agent/",
-                "unregister": f"http{s}://{host}/api/agents/unregister/",
+                "unregister": f"http{s}://{host}/api/agents/me/",
                 "whoami": f"http{s}://{host}/api/agents/me/",
                 "initiate_registration": f"http{s}://{host}/api/agents/register/initiate/",
                 "registration_status": f"http{s}://{host}/api/agents/register/status/",
+                "register_finalize": f"http{s}://{host}/api/agents/register/finalize/",
             }
 
             return UriTemplates[uri]

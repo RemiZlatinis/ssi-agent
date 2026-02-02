@@ -58,10 +58,32 @@ def register() -> None:
                 if reg_status == "completed":
                     auth_key = status_data.get("credentials", {}).get("key")
                     if auth_key:
-                        config.save_agent_key(auth_key)
-                    # Clear line
-                    click.echo("\r" + " " * 50 + "\r", nl=False)
-                    click.secho("✅ Registration completed successfully!", fg="green")
+                        # Finalize registration with the backend
+                        uri_finalize = config.get_uri("register_finalize")
+                        headers = {"Authorization": f"Agent {auth_key}"}
+                        try:
+                            finalize_resp = requests.post(
+                                uri_finalize, headers=headers, timeout=10
+                            )
+                            finalize_resp.raise_for_status()
+                            config.save_agent_key(auth_key)
+                            # Clear line
+                            click.echo("\r" + " " * 50 + "\r", nl=False)
+                            click.secho(
+                                "✅ Registration completed successfully!", fg="green"
+                            )
+                        except requests.exceptions.RequestException as e:
+                            click.echo("\r" + " " * 50 + "\r", nl=False)
+                            click.secho(
+                                f"❌ Finalization failed: {e}."
+                                " Please try registering again.",
+                                fg="red",
+                            )
+                    else:
+                        click.echo("\r" + " " * 50 + "\r", nl=False)
+                        click.secho(
+                            "❌ Registration completed but no key received.", fg="red"
+                        )
                     break
                 elif reg_status == "expired":
                     click.echo("\r" + " " * 50 + "\r", nl=False)
@@ -89,11 +111,11 @@ def register() -> None:
 
 @auth.command(name="unregister")
 @click.confirmation_option(
-    prompt="Are you sure you want to unregister this agent? It will stop communicating"
-    " with the backend."
+    prompt="Are you sure you want to delete this agent? This action is permanent and"
+    " will remove all associated data."
 )
 def unregister() -> None:
-    """Remove the agent's credentials and stop backend connection."""
+    """Permanently delete the agent and remove all associated data."""
     agent_key = config.get_agent_key()
     if not agent_key:
         click.echo("Agent is not registered.")
@@ -103,11 +125,11 @@ def unregister() -> None:
 
     try:
         headers = {"Authorization": f"Agent {agent_key}"}
-        response = requests.post(uri_unregister, headers=headers, timeout=10)
+        response = requests.delete(uri_unregister, headers=headers, timeout=10)
         response.raise_for_status()
 
         config.remove_agent_key()
-        click.echo("✅ Agent key removed and unregistered from backend.")
+        click.echo("✅ Agent deleted successfully from backend.")
 
         # Restart the agent
         system.restart_agent()
@@ -116,7 +138,7 @@ def unregister() -> None:
         # to allow "cleaning" the state
         config.remove_agent_key()
         click.secho(
-            f"⚠️ Server unregistration failed ({e}), but local key was removed.",
+            f"⚠️ Server deletion failed ({e}), but local key was removed.",
             fg="yellow",
         )
 
