@@ -80,17 +80,27 @@ This will display a 6-digit code. Enter this code in an SSI client to complete r
 
 After installation, the following directories are created:
 
-```
-/opt/ssi-agent/
-├── venv/                     # Python virtual environment
-├── bin/                      # Entry point scripts
-└── .installed-service-scripts/ # Enabled service scripts
+```mermaid
+flowchart TD
+    subgraph OPT["/opt/ssi-agent/"]
+        VENV["venv/"]
+        BIN["bin/"]
+        SCRIPTS[".installed-service-scripts/"]
+    end
 
-/etc/ssi-agent/
-└── config.json               # Agent configuration
+    subgraph ETC["/etc/ssi-agent/"]
+        CFG["config.json"]
+    end
 
-/var/log/ssi-agent/
-└── <service_id>.log          # Service log files
+    subgraph VAR["/var/log/ssi-agent/"]
+        LOG["&lt;service_id&gt;.log"]
+    end
+
+    style VENV fill:#1a365d,stroke:#2c5282
+    style BIN fill:#1a365d,stroke:#2c5282
+    style SCRIPTS fill:#1a365d,stroke:#2c5282
+    style CFG fill:#22543d,stroke:#276749
+    style LOG fill:#744210,stroke:#975a16
 ```
 
 ## Configuration

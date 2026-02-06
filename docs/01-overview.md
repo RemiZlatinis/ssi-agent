@@ -14,21 +14,18 @@ The **Service Status Indicator (SSI) Agent** is a lightweight monitoring daemon 
 
 ## How It Works
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                     Linux System                        │
-│ ┌─────────────┐    ┌─────────────┐    ┌───────────────┐ │
-│ │ Service &   │    │  SSI Agent  │    │  SSI Backend  │ │
-│ │ Timer Units ├────►             ◄────►               │ │
-│ │  (systemd)  │    │   Daemon    │    │  (WebSocket)  │ │
-│ └──────┬──────┘    └──────┬──────┘    └───────────────┘ │
-│        │                  │                             │
-│        │                  │                             │
-│ ┌──────▼──────┐    ┌──────▼──────┐                      │
-│ │   Service   │    │     Log     │                      │
-│ │   Scripts   │    │    Files    │                      │
-│ └─────────────┘    └─────────────┘                      │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph LS["Linux System"]
+        subgraph SA["SSI Agent"]
+            D["Daemon"]
+        end
+        ST["Service & Timer Units<br/>(systemd)"] --> D
+        D <--> SB["SSI Backend<br/>(WebSocket)"]
+        SS["Service Scripts"] --> LF["Log Files"]
+        ST --> SS
+        D --> LF
+    end
 ```
 
 1. **Service scripts** are BASH scripts that perform monitoring checks

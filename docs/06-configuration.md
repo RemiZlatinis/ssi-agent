@@ -62,9 +62,11 @@ sudo systemctl restart ssi-agent
 
 The configuration directory uses ACLs to allow admin users to modify settings without `sudo`:
 
-```
-/etc/ssi-agent/           (drwxrwxr-x+ ssi-agent:ssi-agent)
-└── config.json           (-rw-rw-r--+ ssi-agent:ssi-agent)
+```mermaid
+flowchart TD
+    ROOT["/etc/ssi-agent/<br/>drwxrwxr-x+<br/>ssi-agent:ssi-agent"]
+    CFG["config.json<br/>-rw-rw-r--+<br/>ssi-agent:ssi-agent"]
+    ROOT --> CFG
 ```
 
 Users in the `sudo` (Debian) or `wheel` (RHEL) group have write access.

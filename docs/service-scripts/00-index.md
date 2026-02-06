@@ -75,8 +75,9 @@ echo "$TIMESTAMP, $STATUS_OK, Everything is fine"
 4. **Script runs** and outputs to `/var/log/ssi-agent/<id>.log`
 5. **SSI daemon** watches the log file and sends updates to backend
 
-```
-Timer → Service Unit → Script → Log File → Daemon → Backend
+```mermaid
+flowchart LR
+    T["Timer"] --> SU["Service Unit"] --> S["Script"] --> LF["Log File"] --> D["Daemon"] --> B["Backend"]
 ```
 
 ## Output Format

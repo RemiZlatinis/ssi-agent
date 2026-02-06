@@ -8,35 +8,28 @@ The SSI Agent operates as a systemd-native monitoring daemon on Linux systems. I
 2. **Daemon** (`ssi-agent-daemon`) — Long-running process for backend communication
 3. **Service Scripts** — BASH scripts managed by systemd
 
-```
-                                         ┌─────────────────┐
-                                         │   SSI Backend   │
-                                         │   (WebSocket)   │
-                                         └────────▲────────┘
-                                                  │
-┌─────────────────────────────────────────────────┼──────────────────────────────┐
-│                   Linux System                  │                              │
-│                                                 │                              │
-│  ┌──────────────┐      ┌────────────────────────┴───────────────────────────┐  │
-│  │     User     │      │                 SSI Agent Daemon                   │  │
-│  │   (ssi CLI)  │      │  - Watches log files                               │  │
-│  └──────┬───────┘      │  - Sends status via WebSocket                      │  │
-│         │              │  - Handles reconnection                            │  │
-│         │              └────────────────────────▲───────────────────────────┘  │
-│         │                                       │                              │
-│         ▼                                       │ (reads)                      │
-│  ┌──────────────┐      ┌────────────────────────┴───────────────────────────┐  │
-│  │   systemd    │      │                    Log Files                       │  │
-│  │   timers     ├──────►          /var/log/ssi-agent/<service>.log          │  │
-│  └──────────────┘      └────────────────────────▲───────────────────────────┘  │
-│         │                                       │ (writes)                     │
-│         ▼                                       │                              │
-│  ┌──────────────┐      ┌────────────────────────┴───────────────────────────┐  │
-│  │   systemd    │──────│                 Service Scripts                    │  │
-│  │   services   │      │ /opt/ssi-agent/.installed-service-scripts/*.bash     │  │
-│  └──────────────┘      └────────────────────────────────────────────────────┘  │
-│                                                                                │
-└────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    SB["SSI Backend<br/>(WebSocket)"]
+
+    subgraph LS["Linux System"]
+        CLI["User<br/>(ssi CLI)"]
+        subgraph AD["SSI Agent Daemon"]
+            direction TB
+            AD1["- Watches log files"]
+            AD2["- Sends status via WebSocket"]
+            AD3["- Handles reconnection"]
+        end
+
+        ST["systemd timers"] --> LF["Log Files<br/><br/>/var/log/ssi-agent/&lt;service&gt;.log"]
+        SS["Service Scripts<br/><br/>/opt/ssi-agent/.installed-service-scripts/*.bash"] --> LF
+
+        CLI --> ST
+        AD --> LF
+        AD <--> SB
+    end
+
+    style AD fill:#2d3748,stroke:#4a5568
 ```
 
 ## Execution Model
@@ -117,40 +110,51 @@ WantedBy=timers.target
 
 ## Directory Structure
 
-```
-/opt/ssi-agent/
-├── venv/                      # Python virtual environment
-│   └── bin/
-│       ├── ssi-agent          # CLI entry point
-│       └── ssi-agent-daemon   # Daemon entry point
-├── bin/                       # Additional scripts
-└── .installed-service-scripts/  # Enabled service scripts
-    ├── api-health.bash
-    ├── system-updates.bash
-    └── ...
+```mermaid
+flowchart TD
+    subgraph OPT1["/opt/ssi-agent/"]
+        VENV["venv/"]
+        BIN1["bin/"]
+        SCRIPTS[".installed-service-scripts/"]
 
-/etc/ssi-agent/
-├── config.json                # Agent configuration
-└── (future: additional config files)
+        subgraph VENV_BIN["venv/bin/"]
+            CLI["ssi-agent<br/>CLI entry point"]
+            DAEMON["ssi-agent-daemon<br/>Daemon entry point"]
+        end
 
-/var/log/ssi-agent/
-├── api_health.log             # Service output logs
-├── system_updates.log
-└── ...
+        subgraph SCRIPTS_DIR[".installed-service-scripts/"]
+            S1["api-health.bash"]
+            S2["system-updates.bash"]
+            S3["..."]
+        end
+    end
 
-/etc/systemd/system/
-├── ssi-agent.service          # Agent daemon service
-├── ssi-api-health.service     # Service script unit
-├── ssi-api-health.timer       # Service timer unit
-└── ...
+    subgraph ETC1["/etc/ssi-agent/"]
+        CFG1["config.json"]
+        FUTURE["(future: additional config files)"]
+    end
+
+    subgraph VAR1["/var/log/ssi-agent/"]
+        L1["api_health.log"]
+        L2["system_updates.log"]
+        L3["..."]
+    end
+
+    subgraph SYSTEMD["/etc/systemd/system/"]
+        SV1["ssi-agent.service"]
+        SV2["ssi-api-health.service"]
+        TM1["ssi-api-health.timer"]
+        MORE["..."]
+    end
 ```
 
 ## Communication Flow
 
 ### Status Reporting
 
-```
-Script Output → Log File → Daemon (watcher) → WebSocket → Backend
+```mermaid
+flowchart LR
+    SO["Script Output"] --> LF["Log File"] --> D["Daemon (watcher)"] --> WS["WebSocket"] --> B["Backend"]
 ```
 
 1. **Script executes** and prints to stdout:
@@ -182,8 +186,16 @@ Script Output → Log File → Daemon (watcher) → WebSocket → Backend
 
 ### Registration Flow
 
-```
-CLI → Backend API → User confirms in mobile app → Backend → CLI
+```mermaid
+sequenceDiagram
+    participant CLI as CLI
+    participant API as Backend API
+    participant User as User (Mobile App)
+
+    CLI->>API: Request registration code
+    API->>User: Generate & display 6-digit code
+    User->>API: Confirm registration
+    API->>CLI: Return agent key
 ```
 
 1. `ssi register` requests a registration code from the backend

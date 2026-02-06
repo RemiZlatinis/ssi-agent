@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "title": "SSI Agent Documentation",
+  "title": "Agent Documentation",
   "sections": [
     {
       "id": "core",
@@ -9,7 +9,7 @@
       "pages": [
         {
           "id": "index",
-          "title": "SSI Agent Core",
+          "title": "Agent Core",
           "file": "00-index.md",
           "order": 0
         },

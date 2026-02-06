@@ -1,4 +1,4 @@
-# SSI Agent Documentation
+# Agent Documentation
 
 Welcome to the Service Status Indicator (SSI) Agent documentation.
 
