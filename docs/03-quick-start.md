@@ -21,7 +21,7 @@ ssi register
 You'll see output like:
 
 ```
-Registration Code: 123456
+Registration Code: 123-456
 
 Enter this code in an SSI client to complete registration.
 Waiting for confirmation...

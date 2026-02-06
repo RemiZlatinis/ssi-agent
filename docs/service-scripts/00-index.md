@@ -13,7 +13,7 @@ A **service script** is a self-contained BASH script that performs a monitoring 
 
 The SSI Agent follows a core philosophy for service scripts:
 
-> **"What you see is exactly what runs."**
+> **"What you see is exactly what is going to be executed."**
 
 This means:
 
