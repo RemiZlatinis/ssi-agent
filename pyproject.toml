@@ -31,7 +31,6 @@ packages = [{include = "ssi_agent", from = "src"}]
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.4.1,<9.0.0"
 ruff = ">=0.5.5,<1.0.0"
-black = ">=24.4.2,<25.0.0"
 mypy = ">=1.11.0,<2.0.0"
 pytest-cov = ">=5.0.0,<6.0.0"
 pre-commit = "^4.3.0"
@@ -44,9 +43,6 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP"]
-
-[tool.black]
-line-length = 88
 
 [tool.mypy]
 strict = true

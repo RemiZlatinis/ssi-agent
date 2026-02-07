@@ -1,11 +1,11 @@
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
 
 from pydantic import BaseModel
 
 
-class ServiceStatus(str, Enum):
+class ServiceStatus(StrEnum):
     OK = "OK"
     UPDATE = "UPDATE"
     WARNING = "WARNING"
