@@ -41,7 +41,7 @@ class TestAccessControl:
 
         # 2. Attempt to run ssi via absolute path to ensure we hit the permission check
         # and not a PATH lookup failure.
-        result = run_command("/usr/local/bin/ssi --help", user=test_user)
+        result = run_command("/usr/local/sbin/ssi --help", user=test_user)
 
         # 3. Assert Failure
         assert result.returncode != 0, (

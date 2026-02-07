@@ -186,7 +186,7 @@ create_virtual_environment() {
 
 create_symlink() {
     print_status "Creating symlink for ssi-agent CLI..."
-    ln -sf "$INSTALL_DIR/venv/bin/ssi-agent" "/usr/local/bin/ssi"
+    ln -sf "$INSTALL_DIR/venv/bin/ssi-agent" "/usr/local/sbin/ssi"
 }
 
 install_service_file() {
@@ -284,9 +284,9 @@ uninstall_agent() {
     fi
 
     # Remove symlink
-    if [[ -L "/usr/local/bin/ssi" ]]; then
+    if [[ -L "/usr/local/sbin/ssi" ]]; then
         print_warning "Removing ssi-agent CLI symlink..."
-        rm -f "/usr/local/bin/ssi"
+        rm -f "/usr/local/sbin/ssi"
     else
         print_status "ssi-agent CLI symlink not found, skipping"
     fi
