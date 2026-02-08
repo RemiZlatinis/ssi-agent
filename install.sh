@@ -147,8 +147,12 @@ create_directories() {
     chmod 755 "$LOG_DIR"
     chmod 755 "$CONFIG_DIR" # Owner rwx, group rx, other rx
 
+    # Set ownership and permissions on install directory for admin group access
+    chown "$SERVICE_USER:$ADMIN_GROUP" "$INSTALL_DIR"
+    chmod u=rwx,g=rx,o= "$INSTALL_DIR"
+    
     # Grant admin group write access to the config directory using ACLs
-    # This allows admin users to run 'ssi register' without 'sudo'
+    # This allows admin users to run 'ssi auth register' without 'sudo'
     setfacl -m g:"$ADMIN_GROUP":rwx "$CONFIG_DIR"
 }
 
@@ -176,6 +180,7 @@ create_virtual_environment() {
     # Set group to ADMIN_GROUP and restrict perms so only owner/group can execute
     chown -R "$SERVICE_USER:$ADMIN_GROUP" "$INSTALL_DIR/venv"
     chmod -R u=rwX,g=rX,o= "$INSTALL_DIR/venv"
+    chmod o+X "$INSTALL_DIR/venv" "$INSTALL_DIR/venv/bin"
 
     # Make it Editable install if EDITABLE_INSTALL is 1 (True)
     if [[ "${EDITABLE_INSTALL:-0}" == 1 ]]; then
