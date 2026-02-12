@@ -12,6 +12,11 @@ StandardOutput=append:/var/log/ssi-agent/{id}.log
 StandardError=append:/var/log/ssi-agent/{id}.log
 LogsDirectory=ssi-agent
 LogsDirectoryMode=0755
+# Pre-create log file with correct permissions if it doesn't exist
+ExecStartPre=+-/bin/bash -c 'touch /var/log/ssi-agent/{id}.log && chown root:ssi-agent /var/log/ssi-agent/{id}.log && chmod 660 /var/log/ssi-agent/{id}.log'
+# Ensure permissions are correct after execution (systemd may reset them)
+ExecStopPost=+-/bin/chown root:ssi-agent /var/log/ssi-agent/{id}.log
+ExecStopPost=+-/bin/chmod 660 /var/log/ssi-agent/{id}.log
 
 [Install]
 WantedBy=multi-user.target
