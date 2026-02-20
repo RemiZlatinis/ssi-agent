@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def _run(
-    cmd: list[str], check: bool = True, capture: bool = True
+    cmd: list[str], check: bool = True, capture: bool = False
 ) -> subprocess.CompletedProcess[str]:
     """
     Executes a command and handles standard failure cases.
@@ -90,29 +90,21 @@ def start_unit(unit_name: str, background: bool = False) -> None:
 
     Args:
         unit_name: Full name of the unit.
-        background: If True, invokes start without waiting or completion.
+        background: If True, uses --no-block to queue the start without
+                    waiting for the unit to finish.
     """
-    cmd = ["sudo", "systemctl", "start", unit_name]
+    cmd = ["sudo", "systemctl"]
     if background:
-        try:
-            # We use Popen here to fire and forget
-            subprocess.Popen(
-                cmd,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                stdin=subprocess.DEVNULL,
-            )
-        except Exception as e:
-            raise RuntimeError(f"Failed to spawn background start for {unit_name}: {e}")
-    else:
-        _run(cmd)
+        cmd.append("--no-block")
+    cmd.extend(["start", unit_name])
+    _run(cmd)
 
 
 def is_unit_enabled(unit_name: str) -> bool:
     """Returns True if the unit is enabled in systemd."""
     try:
         # systemctl is-enabled returns 0 if enabled, 1 if disabled.
-        result = _run(["systemctl", "is-enabled", unit_name], check=False)
+        result = _run(["systemctl", "is-enabled", unit_name], check=False, capture=True)
         return result.stdout.strip() == "enabled"
     except (RuntimeError, subprocess.SubprocessError):
         return False
@@ -129,7 +121,7 @@ def list_units(pattern: str, state: str = "enabled") -> list[str]:
     if state:
         cmd.extend(["--state", state])
 
-    result = _run(cmd)
+    result = _run(cmd, capture=True)
     # Each line is "unit_name.type status"
     return [line.split()[0] for line in result.stdout.splitlines() if line.strip()]
 
