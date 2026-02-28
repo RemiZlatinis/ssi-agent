@@ -27,12 +27,10 @@ CONFIG = {
             "stream": "ext://sys.stdout",
         },
         "file": {
-            "class": "logging.handlers.RotatingFileHandler",
+            "class": "logging.handlers.WatchedFileHandler",
             "level": "DEBUG",
             "formatter": "detailed",
             "filename": LOG_DIR / "_agent.log",
-            "maxBytes": 10_485_760,  # 10MB
-            "backupCount": 5,
             "encoding": "utf8",
         },
     },
