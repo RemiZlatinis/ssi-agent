@@ -15,6 +15,7 @@ def validate_schedule(schedule: str) -> None:
     Examples of valid formats:
         - *:0/01:00      (Every minute)
         - *:00:00        (Every hour)
+        - *:0,30:00      (Every hour and half-hour)
         - 0/1:00:00      (Every hour, alternative format)
         - Mon *-*-* 00:00:00  (Every Monday at midnight)
         - *-*-* 00:00:00     (Every day at midnight)
@@ -29,15 +30,13 @@ def validate_schedule(schedule: str) -> None:
 
     # Complex schedule patterns
     patterns = [
-        # Time-based formats
-        r"^\*:[0-9]+/[0-9]+$",  # Every N minutes (simplified format)
-        r"^\*:[0-9]+/[0-9]{2}:[0-9]{2}$",  # Every N minutes/hours (extended format)
-        r"^\*:[0-9]{2}:[0-9]{2}$",  # Every hour
-        r"^0/[0-9]+:[0-9]{2}:[0-9]{2}$",  # Every hour, alternative format
-        # Day-based schedules
-        r"^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\*-\*-\*\s+[0-9]{2}:[0-9]{2}:[0-9]{2}$",
-        # Generic time-based schedules
-        r"^\*-\*-\*\s+[0-9]{2}:[0-9]{2}:[0-9]{2}$",
+        # Time-based formats (H:M or H:M:S)
+        r"^\*:[0-9,]+(/[0-9]+)?(:[0-9,]+(/[0-9]+)?)?$",
+        r"^[0-9,]+(/[0-9]+)?:[0-9,]+(/[0-9]+)?(:[0-9,]+(/[0-9]+)?)?$",
+        # Day-based schedules (Day Y-M-D H:M:S)
+        r"^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+[\*\d\-,]+-[\*\d\-,]+-[\*\d\-,]+\s+[\*\d\-,]+:[\*\d\-,]+:[\*\d\-,]+$",
+        # Generic date-time schedules (Y-M-D H:M:S)
+        r"^[\*\d\-,]+-[\*\d\-,]+-[\*\d\-,]+\s+[\*\d\-,]+:[\*\d\-,]+:[\*\d\-,]+$",
     ]
 
     for pattern in patterns:
@@ -49,6 +48,7 @@ def validate_schedule(schedule: str) -> None:
         "Expected format examples:\n"
         "- *:0/01:00 (every minute)\n"
         "- *:00:00 (every hour)\n"
+        "- *:0,30:00 (every hour and half-hour)\n"
         "- 0/1:00:00 (every hour, alternative format)\n"
         "- Mon *-*-* 00:00:00 (every Monday at midnight)\n"
         "- *-*-* 00:00:00 (every day at midnight)\n"
