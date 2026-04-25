@@ -163,11 +163,16 @@ create_virtual_environment() {
     RECREATE_VENV=0
 
     if [[ -d "$VENV_PATH" ]]; then
-        # Check if the venv's python binary works and matches current system python version
+        # 1. Check if the venv's python binary works
         if ! "$VENV_PATH/bin/python3" --version &>/dev/null; then
-            print_warning "Virtual environment appears broken (possibly due to OS upgrade)."
+            print_warning "Virtual environment Python is broken (possibly due to OS upgrade)."
+            RECREATE_VENV=1
+        # 2. Check if pip is functional (catches library path mismatches after OS upgrades)
+        elif ! "$VENV_PATH/bin/python3" -m pip --version &>/dev/null; then
+            print_warning "Virtual environment environment is inconsistent (possibly due to OS upgrade)."
             RECREATE_VENV=1
         else
+            # 3. Check for Python version mismatch
             VENV_PY_VER=$("$VENV_PATH/bin/python3" -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
             SYS_PY_VER=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
             if [[ "$VENV_PY_VER" != "$SYS_PY_VER" ]]; then
