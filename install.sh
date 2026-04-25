@@ -159,11 +159,35 @@ create_directories() {
 create_virtual_environment() {
     print_status "Setting up Python virtual environment..."
 
-    if [[ ! -d "$INSTALL_DIR/venv" ]]; then
-        print_status "Creating new virtual environment..."
-        python3 -m venv "$INSTALL_DIR/venv"
+    VENV_PATH="$INSTALL_DIR/venv"
+    RECREATE_VENV=0
+
+    if [[ -d "$VENV_PATH" ]]; then
+        # Check if the venv's python binary works and matches current system python version
+        if ! "$VENV_PATH/bin/python3" --version &>/dev/null; then
+            print_warning "Virtual environment appears broken (possibly due to OS upgrade)."
+            RECREATE_VENV=1
+        else
+            VENV_PY_VER=$("$VENV_PATH/bin/python3" -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
+            SYS_PY_VER=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
+            if [[ "$VENV_PY_VER" != "$SYS_PY_VER" ]]; then
+                print_warning "Python version mismatch (Venv: $VENV_PY_VER, System: $SYS_PY_VER)."
+                RECREATE_VENV=1
+            fi
+        fi
     else
-        print_status "Virtual environment found. Updating if necessary."
+        RECREATE_VENV=1
+    fi
+
+    if [[ $RECREATE_VENV -eq 1 ]]; then
+        if [[ -d "$VENV_PATH" ]]; then
+            print_status "Removing outdated/broken virtual environment..."
+            rm -rf "$VENV_PATH"
+        fi
+        print_status "Creating new virtual environment..."
+        python3 -m venv "$VENV_PATH"
+    else
+        print_status "Virtual environment found and valid."
     fi
 
     # Define path to venv pip for clarity and to avoid sourcing the activate script
