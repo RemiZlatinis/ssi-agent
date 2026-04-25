@@ -87,7 +87,7 @@ check_system_requirements() {
 
     # Check Python version (minimum 3.12)
     PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
-    if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)'; then
+    if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)'; then
         print_error "Python 3.12 or higher is required. Found: Python $PYTHON_VERSION"
         exit 1
     fi
