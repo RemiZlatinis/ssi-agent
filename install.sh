@@ -150,7 +150,7 @@ create_directories() {
     # Set ownership and permissions on install directory for admin group access
     chown "$SERVICE_USER:$ADMIN_GROUP" "$INSTALL_DIR"
     chmod u=rwx,g=rx,o= "$INSTALL_DIR"
-    
+
     # Grant admin group write access to the config directory using ACLs
     # This allows admin users to run 'ssi auth register' without 'sudo'
     setfacl -m g:"$ADMIN_GROUP":rwx "$CONFIG_DIR"
@@ -220,7 +220,7 @@ create_virtual_environment() {
 
 create_symlink() {
     print_status "Creating symlink for ssi-agent CLI..."
-    
+
     # Remove old symlink from bin if it exists (legacy or standard location)
     # We use sbin to indicate this is an administrative tool
     if [[ -L "/usr/local/bin/ssi" ]]; then
@@ -229,7 +229,7 @@ create_symlink() {
 
     # Create symlink in /usr/local/sbin
     ln -sf "$INSTALL_DIR/venv/bin/ssi-agent" "/usr/local/sbin/ssi"
-    
+
     print_status "CLI symlink created at /usr/local/sbin/ssi"
 }
 
@@ -336,7 +336,7 @@ uninstall_agent() {
             SYM_REMOVED=1
         fi
     done
-    
+
     if [[ $SYM_REMOVED -eq 0 ]]; then
         print_status "No ssi-agent CLI symlinks found, skipping"
     fi
