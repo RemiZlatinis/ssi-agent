@@ -113,11 +113,27 @@ async def daemon() -> None:
 
             logger.info("SSI Agent is running.")
 
-            # 5. Keep Alive
-            # We wait here until the connection is closed.
-            # This prevents the loop from spinning and restarting everything
-            # immediately.
-            await connection.wait_closed()
+            # 5. Keep Alive & Event Listening
+            # We wait here and listen for incoming messages from the server.
+            # This replaces wait_closed() to allow reacting to server-sent events.
+            try:
+                async for message in connection:
+                    if isinstance(message, str):
+                        try:
+                            import json
+
+                            data = json.loads(message)
+                            if data.get("type") == "agent.removed":
+                                logger.warning(
+                                    "This agent has been removed from the backend."
+                                    " Removing local registration key..."
+                                )
+                                config.remove_agent_key()
+                                break
+                        except json.JSONDecodeError:
+                            logger.debug(f"Received non-JSON message: {message}")
+            except Exception as conn_err:
+                logger.warning(f"Connection error in message listener: {conn_err}")
 
             logger.warning("WebSocket connection closed. Restarting monitors...")
 
