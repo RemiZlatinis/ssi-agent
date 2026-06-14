@@ -68,12 +68,6 @@ async def daemon() -> None:
     4. Handles errors and ensures resources are cleaned up on retry.
     """
 
-    # THIS LOGIC SHOULD BE ON THE LOGGING MODULE
-    # it never logs the warning because the LOG_DIR does not exist
-    # if not os.path.exists(LOG_DIR):
-    #     logger.warning(f"Log directory {LOG_DIR} does not exist. Creating it...")
-    #     os.makedirs(LOG_DIR, exist_ok=True)
-
     while True:
         # Reset state variables for each connection attempt
         connection = None
