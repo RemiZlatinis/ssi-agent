@@ -35,6 +35,8 @@ async def connect_with_retry(agent_key: str) -> ClientConnection:
     retry_delay = 5
     max_retries = 3  # Number of quick retries before increasing delay
     retry_count = 0
+    steady_state_logged = False  # Flag to log steady state transition only once
+    # Local scope ensures flag resets on each function invocation (reconnection)
 
     while True:
         try:
@@ -62,9 +64,21 @@ async def connect_with_retry(agent_key: str) -> ClientConnection:
                 # - After double the delay up to 30s
                 retry_delay = min(30, retry_delay * 2)
 
-            logger.warning(
-                f"Connection attempt failed: {e}. Retrying in {retry_delay} seconds..."
-            )
+                # Log transition to steady state only once
+                if not steady_state_logged:
+                    logger.warning(
+                        f"Connection failed after {max_retries} quick retries. "
+                        f"Entering steady-state retry mode: "
+                        f"attempting every {retry_delay}s in the background."
+                    )
+                    steady_state_logged = True
+            else:
+                # During initial quick retries, log each failure
+                logger.warning(
+                    f"Connection attempt failed: {e}. "
+                    f"Retrying in {retry_delay} seconds..."
+                )
+
             await asyncio.sleep(retry_delay)
 
 
