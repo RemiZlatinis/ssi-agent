@@ -49,6 +49,7 @@ Architecture:
 """
 
 import asyncio
+import json
 import logging
 
 from . import client, config, monitor
@@ -114,8 +115,6 @@ async def daemon() -> None:
                 async for message in connection:
                     if isinstance(message, str):
                         try:
-                            import json
-
                             data = json.loads(message)
                             if data.get("type") == "agent.removed":
                                 logger.warning(
