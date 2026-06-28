@@ -92,6 +92,12 @@
           "title": "Best Practices",
           "file": "service-scripts/05-best-practices.md",
           "order": 5
+        },
+        {
+          "id": "quick-guide",
+          "title": "Quick Guide",
+          "file": "service-scripts/06-quick-guide.md",
+          "order": 6
         }
       ]
     },
