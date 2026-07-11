@@ -1,12 +1,12 @@
-# Quick Service Script Guide
+# Quick Guide for Service-Scripts
 
-This guide is a quick reference for developers who are already familiar with writing SSI service scripts and want to quickly start a new script.
+This guide is a quick reference for those who are already familiar with writing SSI service-scripts and want to quickly start a new script.
 
 ---
 
-## Copy-Pastable Boilerplate
+## Boilerplate
 
-Create your service script (e.g., `my-check.bash`) and paste the following template:
+Create your service-script (e.g., check API health -> `api-health.bash`, check system updates -> `system-updates.bash`) and paste the following template:
 
 ```bash
 #!/bin/bash
@@ -29,33 +29,23 @@ TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 # Define configurations and default values using ${VAR:-default}
 WARNING_THRESHOLD="${WARNING_THRESHOLD:-80}"
 CRITICAL_THRESHOLD="${CRITICAL_THRESHOLD:-95}"
+MOUNT_POINT="${MOUNT_POINT:-/}"
 
 # --- Dependencies --- #
-# curl - HTTP requests
-# jq   - JSON parsing
+# df
 
 # --- Main --- #
-# 1. Verify dependencies are available
-for cmd in curl jq; do
-    if ! command -v "$cmd" &>/dev/null; then
-        echo "$TIMESTAMP, $STATUS_FAILURE, Required dependency '$cmd' is missing."
-        exit 1
-    fi
-done
+# Check the disk usage percentage of the configured mount point
+USAGE=$(df -h "$MOUNT_POINT" | awk 'NR==2 {print $5}' | tr -d '%')
 
-# 2. Add monitoring logic here
-# Example check:
-USAGE=50
-
-# 3. Output results and exit with correct status code
 if [ "$USAGE" -ge "$CRITICAL_THRESHOLD" ]; then
-    echo "$TIMESTAMP, $STATUS_FAILURE, Critical failure: value is ${USAGE}%"
+    echo "$TIMESTAMP, $STATUS_FAILURE, Disk usage critical: ${USAGE}%"
     exit 1
 elif [ "$USAGE" -ge "$WARNING_THRESHOLD" ]; then
-    echo "$TIMESTAMP, $STATUS_WARNING, Warning: value is ${USAGE}%"
+    echo "$TIMESTAMP, $STATUS_WARNING, Disk usage high: ${USAGE}%"
     exit 0
 else
-    echo "$TIMESTAMP, $STATUS_OK, Normal: value is ${USAGE}%"
+    echo "$TIMESTAMP, $STATUS_OK, Disk usage normal: ${USAGE}%"
     exit 0
 fi
 ```
@@ -89,33 +79,37 @@ The agent parses only the **last line** of the stdout to determine final status.
 ### 1. Test Locally
 Make the script executable and run it directly to verify formatting and output:
 ```bash
-chmod +x my-check.bash
-./my-check.bash
+chmod +x api-health.bash
+./api-health.bash
 ```
 
 ### 2. Add to Agent
 Register the script with the agent (creates systemd services and timers):
 ```bash
-ssi add my-check.bash
+ssi service add api-health.bash
 ```
 
 ### 3. Run Manually
-Force execution of the service immediately:
+Force execution of the service immediately (uses the service ID derived from the name/filename):
 ```bash
-ssi run my-check
+ssi service run api-health
 ```
 
 ### 4. Check Status
-List registered services and their current state:
+List registered services and their current status:
 ```bash
+# Get summary status of all services
 ssi service status
+
+# List all installed service configurations
+ssi service list
 ```
 
 ### 5. Debug Logs
 Tail the logs for your specific service or watch the daemon:
 ```bash
 # Service output logs
-tail -f /var/log/ssi-agent/my-check.log
+tail -f /var/log/ssi-agent/api-health.log
 
 # Daemon events
 ssi debug logs -f
