@@ -22,7 +22,7 @@ The system flows data from the Edge (Servers/Agents) to the Core (Backend) and f
    - **This Repository**. Installed on Linux/Systemd.
    - Executes service scripts, captures standardized CSV logs, and streams them to the Backend.
 2. **The Backend (Brain)**:
-   - **Closed Source**.
+   - **Open Source**.
    - Central hub that receives updates from Agents and pushes real-time notifications to Clients.
 3. **The Client (Status Board)**:
    - Mobile/Web Interface (React Native).
